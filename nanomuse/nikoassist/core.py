@@ -97,8 +97,8 @@ def parse_plan(raw: str, goal: str, *, mode: str = "research", max_agents: int =
     if len(stripped) > _MAX_JSON_CHARS:
         stripped = ""
     if stripped.startswith("```"):
-        stripped = re.sub(r"^```(?:json)?\\s*", "", stripped, flags=re.IGNORECASE)
-        stripped = re.sub(r"\\s*```$", "", stripped)
+        stripped = re.sub(r"^```(?:json)?\s*", "", stripped, flags=re.IGNORECASE)
+        stripped = re.sub(r"\s*```$", "", stripped)
     try:
         payload = json.loads(stripped)
     except (TypeError, ValueError, RecursionError):
