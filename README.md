@@ -1,37 +1,45 @@
 # NikoAssist — par Niko Studio Design
 
-**NikoAssist** est un projet d'assistant IA agentique multi-appareils, destiné à iOS, Android et aux ordinateurs.
+**Assistant IA multi-agents pour iOS, Android et ordinateurs**, construit à partir du projet libre [nanoMuse](https://github.com/nano-muse/nanoMuse).
 
-## État de développement
+## Deux branches sur ce GitHub
 
-Ce dépôt contient une **extension multi-agents pour le runtime Python [nanoMuse](https://github.com/nano-muse/nanoMuse)**. Ce n'est **pas encore** une application Android/iOS autonome, compilée, signée ou publiée sur les stores.
+- **[source-nikoassist](https://github.com/Nikoju1977/Nikoassist/tree/source-nikoassist)** : **code source complet** nanoMuse, avec la marque NikoAssist sur les projets iOS/Android et l'outil multi-agents raccordé au moteur Python.
+- **[main](https://github.com/Nikoju1977/Nikoassist)** : extension maintenable, installateur, tests et workflows d'intégration.
 
-Le moteur multi-agents répartit une mission entre des agents spécialisés (recherche, analyse, création, exécution) en conservant la couche de contrôle des actions **Sentinel** de nanoMuse. Les sous-agents disposent de listes d'outils limitées. Les appels aux outils restent soumis aux permissions de l'application d'origine.
+## Fonctions implémentées
 
-- Agent Recherche : recherche Web et sources.
-- Agent Analyse : structuration et analyse.
-- Agent Création : création locale sous contrôle.
-- Agent Exécution : agir sur les appareils connectés, selon les permissions.
+- Un orchestrateur **`agent_team`** avec jusqu'à **4 sous-agents spécialisés** : recherche, analyse, création, exécution.
+- **Planification contrôlée** : filtrage des tâches, des rôles et des outils, sans escalade de privilèges depuis un résultat généré par IA.
+- **Budgets d'exécution** : nombre d'agents, étapes, taille des messages et délais plafonnés.
+- **Sentinel** : actions et outils sensibles soumis aux autorisations du moteur nanoMuse ; `create` et `act` classés sensibles avant la délégation.
+- **Récupération prudente** : jamais de relance automatique des actions dont le résultat est incertain ; contrôle final et états vérifiables.
+- **Installateur idempotent et atomique**, `--dry-run`, restauration en cas d'échec d'écriture.
+- **18 tests de régression** dans `main` et workflow d'intégration sur le commit nanoMuse analysé.
 
-La base source utilisée pour préparer l'intégration est le projet [nano-muse/nanoMuse](https://github.com/nano-muse/nanoMuse), à la révision `34439cf8a82e8163004fae14c731c87fd6e69ebf` (octobre 2026).
+## Installer
 
-## Installer dans nanoMuse
+Consulter [le guide d'installation](docs/INSTALLATION.md). Depuis un clone de ce dépôt et un clone nanoMuse :
 
 ```bash
-git clone https://github.com/nano-muse/nanoMuse.git
-git clone https://github.com/Nikoju1977/Nikoassist.git
-cd Nikoassist
+python scripts/install_nikoassist.py --target ../nanoMuse --dry-run
 python scripts/install_nikoassist.py --target ../nanoMuse
+python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3'
+python -m pytest -q tests/
 ```
 
-Exécuter ensuite les procédures de build et de tests officielles de nanoMuse. L'extension destinée aux ordinateurs/serveurs s'appuie sur une délégation depuis le téléphone ; elle ne débloque pas les restrictions d'iOS.
+## Niveau de validation
 
-## Validation
+**Vérifié :** tests de la politique, intégration automatisée de la surcouche dans un clone épinglé de nanoMuse, syntaxe Python et présence des points d'identité Android/iOS.
 
-Les tests de l'extension doivent être lancés avec `python -m pytest -q tests/`. Les builds natifs iOS et Android ne sont pas certifiés ici.
+**Non encore vérifié :** application Android signée et installée sur des appareils réels, build iOS signé et tests sur iPhone, contrôle de l'OS sur toutes les versions, performances en production.
 
-## Licence et attribution
+La couche multi-agents est disponible dans le **runtime Python associé** ; les applications mobiles peuvent lui déléguer du travail via les connexions de nanoMuse. Il ne s'agit pas encore d'une nouvelle interface native avec des agents exécutés chacun directement sur le téléphone. Les restrictions iOS continuent de s'appliquer.
 
-Les éléments dérivés du projet nanoMuse/OpenMinis restent soumis à **GPL-3.0-or-later**. Conserver les mentions de copyright et distribuer le code source correspondant conformément à la licence. NikoAssist est un projet indépendant, par Niko Studio Design.
+**Objectif de fiabilité :** l'amélioration est mesurée par les tests et les builds. L'expression « dix fois plus fiable ou puissant » n'est pas un résultat démontré sans protocole de benchmark avant/après.
 
-**Attention :** ne jamais commiter de clés API, données privées, certificats Apple ou keystores Android.
+## Licence
+
+Le code dérivé de nanoMuse et OpenMinis reste sous **GNU GPL-3.0-or-later**, avec les obligations de redistribution et les crédits d'origine. Voir [crédits et licences](LICENSE_NOTICE.md).
+
+Création : **Niko Studio Design**. Projet indépendant, non affilié à nanoMuse ou Meta.
