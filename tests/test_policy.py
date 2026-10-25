@@ -116,7 +116,8 @@ def _fixture(tmp_path):
     (root / "android/src/android/app/src/main/res/values-fr").mkdir(parents=True)
     (root / "android/src/android/app/src/main/res/values-fr/strings.xml").write_text(
         '<resources><string name="app_name">nanoMuse</string>'
-        '<string name="license">GPL-3.0 attribution nanoMuse</string></resources>'
+        '<string name="license">GPL-3.0 attribution nanoMuse</string>'
+        '<string name="about_minis_tagline">Original tagline</string></resources>'
     )
     return root
 
