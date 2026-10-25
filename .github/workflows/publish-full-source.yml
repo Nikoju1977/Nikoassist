@@ -44,8 +44,11 @@ jobs:
           cd upstream
           git config user.name "NikoAssist Build Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A nanomuse android
-          git commit -m "feat: NikoAssist by Niko Studio Design multi-agent overlay"
+          # Create a self-contained root commit: GitHub cannot import missing
+          # parent objects from a partial/shallow upstream clone.
+          git checkout --orphan source-nikoassist
+          git add -A
+          git commit -m "feat: NikoAssist GPL full source based on nanoMuse"
           git remote add publish "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
           if git ls-remote --exit-code publish refs/heads/source-nikoassist >/dev/null 2>&1; then
             echo "source-nikoassist exists; refusing to overwrite it automatically"
