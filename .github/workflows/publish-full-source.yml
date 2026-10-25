@@ -47,6 +47,9 @@ jobs:
           # Create a self-contained root commit: GitHub cannot import missing
           # parent objects from a partial/shallow upstream clone.
           git checkout --orphan source-nikoassist
+          # The GITHUB_TOKEN has contents:write but not workflow authorisation.
+          # Upstream workflow YAML is CI configuration, not runtime source.
+          rm -rf .github/workflows
           git add -A
           git commit -m "feat: NikoAssist GPL full source based on nanoMuse"
           git remote add publish "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
