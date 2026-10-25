@@ -1,0 +1,62 @@
+name: NikoAssist - tests and upstream compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Security and reliability
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3'
+      - name: Run regression tests
+        run: python -m pytest -q tests/
+      - name: Compile agent and installer
+        run: python -m compileall -q nanomuse/nikoassist scripts
+
+  upstream-integration:
+    name: Apply to pinned nanoMuse
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Clone the inspected upstream revision
+        shell: bash
+        run: |
+          git clone --depth 1 --filter=blob:none https://github.com/nano-muse/nanoMuse.git upstream
+          git -C upstream fetch --depth 1 origin 34439cf8a82e8163004fae14c731c87fd6e69ebf
+          git -C upstream checkout --detach 34439cf8a82e8163004fae14c731c87fd6e69ebf
+      - name: Check all patches without touching the source
+        run: python scripts/install_nikoassist.py --target upstream --dry-run
+      - name: Install once, then check idempotency
+        shell: bash
+        run: |
+          python scripts/install_nikoassist.py --target upstream
+          python scripts/install_nikoassist.py --target upstream | tee second-install.txt
+          grep -q '^0 fichier(s)' second-install.txt
+      - name: Validate Python syntax and native branding anchors
+        shell: bash
+        run: |
+          python -m compileall -q upstream/nanomuse/nikoassist upstream/nanomuse/app.py
+          grep -q 'NIKOASSIST_AGENT_TEAM_V1' upstream/nanomuse/app.py
+          grep -q 'NikoAssist' upstream/android/src/ios/Minis.xcodeproj/project.pbxproj
+          grep -q 'NikoAssist' upstream/android/src/android/app/src/main/res/values/strings.xml
+          git -C upstream diff --stat > integration-summary.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: integration-summary
+          path: integration-summary.txt
