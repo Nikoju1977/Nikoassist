@@ -1,0 +1,54 @@
+name: Publish NikoAssist full-source branch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'nanomuse/nikoassist/**'
+      - 'scripts/install_nikoassist.py'
+      - '.github/workflows/publish-full-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout NikoAssist overlay
+        uses: actions/checkout@v4
+
+      - name: Clone pinned GPL nanoMuse
+        shell: bash
+        run: |
+          git clone --depth 1 --filter=blob:none https://github.com/nano-muse/nanoMuse.git upstream
+          git -C upstream fetch --depth 1 origin 34439cf8a82e8163004fae14c731c87fd6e69ebf
+          git -C upstream checkout --detach 34439cf8a82e8163004fae14c731c87fd6e69ebf
+
+      - name: Overlay NikoAssist and check syntax
+        shell: bash
+        run: |
+          python scripts/install_nikoassist.py --target upstream
+          python -m compileall -q upstream/nanomuse/nikoassist upstream/nanomuse/app.py
+          test -f upstream/LICENSE
+          grep -q 'NIKOASSIST_AGENT_TEAM_V1' upstream/nanomuse/app.py
+
+      - name: Publish full source as separate branch (without force)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd upstream
+          git config user.name "NikoAssist Build Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A nanomuse android
+          git commit -m "feat: NikoAssist by Niko Studio Design multi-agent overlay"
+          git remote add publish "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
+          if git ls-remote --exit-code publish refs/heads/source-nikoassist >/dev/null 2>&1; then
+            echo "source-nikoassist exists; refusing to overwrite it automatically"
+            exit 0
+          fi
+          git push publish HEAD:refs/heads/source-nikoassist
