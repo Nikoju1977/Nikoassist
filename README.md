@@ -15,7 +15,7 @@
 - **Sentinel** : actions et outils sensibles soumis aux autorisations du moteur nanoMuse ; `create` et `act` classés sensibles avant la délégation.
 - **Récupération prudente** : jamais de relance automatique des actions dont le résultat est incertain ; contrôle final et états vérifiables.
 - **Installateur idempotent et atomique**, `--dry-run`, restauration en cas d'échec d'écriture.
-- **18 tests de régression** dans `main` et workflow d'intégration sur le commit nanoMuse analysé.
+- **19 tests de régression** dans `main` et workflow d'intégration sur le commit nanoMuse analysé.
 
 ## Installer
 
