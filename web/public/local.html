@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10192b">
+  <meta name="description" content="NikoAssist Local : assistant IA gratuit, sans serveur, directement dans votre navigateur.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NikoAssist">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <title>NikoAssist Local — gratuit et sans serveur</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;color:#e8f0fb;background:#090e1c}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100dvh}
+    a{color:#65e4d6;text-decoration:none}
+    a:hover{text-decoration:underline}
+    button,textarea,select{font:inherit}
+    button{cursor:pointer}
+    button:disabled{opacity:.48;cursor:not-allowed}
+    .layout{min-height:100dvh;display:flex;flex-direction:column;max-width:850px;margin:0 auto}
+    header{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 14px) 17px 14px;background:#10192b;border-bottom:1px solid #28354c}
+    header img{height:42px;width:42px;border-radius:12px}
+    .brand{flex:1;min-width:0}
+    .brand h1{font-size:17px;letter-spacing:-.025em;margin:0}
+    .brand p{font-size:11px;color:#83c7be;margin:2px 0 0}
+    .tiny-link{font-size:12px;white-space:nowrap}
+    .notice{padding:14px 18px;background:#10192b;border-bottom:1px solid #27354b;font-size:13px;line-height:1.55;color:#b3c3d9}
+    .notice strong{color:#65e4d6}
+    .tools{padding:12px 17px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:#0e1425;border-bottom:1px solid #28354c}
+    select{flex:1;min-width:130px;max-width:350px;border:1px solid #3b4d69;background:#1a2840;color:#f2f6ff;padding:11px 12px;border-radius:13px}
+    button{border:1px solid #42516a;background:#202e44;color:#eff6ff;border-radius:13px;padding:10px 12px}
+    button.primary{border-color:#5fe5d6;background:#5fe5d6;color:#051a22;font-weight:700}
+    .status{margin:0;padding:11px 17px;color:#adc4d7;font-size:12px;min-height:40px}
+    .status.error{color:#ffadad}
+    progress{display:none;width:calc(100% - 34px);height:7px;margin:0 17px 8px;accent-color:#64e3d4}
+    progress.visible{display:block}
+    .chat{flex:1;min-height:32vh;overflow-y:auto;padding:16px 16px 70px;display:flex;flex-direction:column;gap:16px}
+    .message{max-width:90%;padding:13px 15px;border-radius:17px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;font-size:14px}
+    .assistant{align-self:flex-start;background:#19263b;border:1px solid #2d405a;border-bottom-left-radius:4px}
+    .user{align-self:flex-end;background:#246e71;color:#fff;border-bottom-right-radius:4px}
+    .welcome{margin:auto;max-width:480px;text-align:center;color:#acbed6;padding:16px 18px}
+    .welcome h2{color:#f3f7ff;font-size:22px;margin:15px 0 6px}
+    .welcome p{line-height:1.6;font-size:14px}
+    .welcome .circle{display:inline-grid;place-items:center;width:76px;height:76px;border:1px solid #45dfcc;border-radius:24px;font-size:36px;color:#67e7d7;background:#15273a}
+    .composer{padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:#0f182a;border-top:1px solid #30435b}
+    .composer form{display:flex;gap:10px;align-items:end}
+    textarea{background:#1c2a3f;border:1px solid #38526d;border-radius:16px;resize:vertical;min-height:48px;max-height:160px;padding:12px 14px;color:#fff;width:100%;outline-offset:2px}
+    textarea::placeholder{color:#9caabf}
+    .composer small{display:block;color:#9aacbe;margin-top:8px;font-size:11px;line-height:1.5}
+    .send{min-height:48px;min-width:78px}
+    .footer{padding:0 16px 12px;color:#8997ad;font-size:11px;text-align:center}
+    @media(min-width:650px){.message{max-width:77%}.chat{padding:22px 28px 70px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <header>
+    <img src="/icon-192.png" alt="Logo NikoAssist">
+    <div class="brand"><h1>NikoAssist <span style="color:#65e4d6">Local</span></h1><p>par Niko Studio Design · 0 € · sans serveur IA</p></div>
+    <a class="tiny-link" href="/" aria-label="Retour au site principal">Accueil</a>
+  </header>
+  <div class="notice">
+    <strong>Votre IA travaille sur votre appareil.</strong> Aucun abonnement, aucune clé API.
+    Au premier lancement, un modèle libre est téléchargé depuis Hugging Face. Ses calculs se font ensuite dans le navigateur.
+    Ce mode permet le <strong>chat local</strong>, pas encore les actions JARVIS sur d'autres applications.
+  </div>
+  <div class="tools">
+    <label for="model" style="font-size:12px;color:#b3c5db">Modèle</label>
+    <select id="model">
+      <option value="compact">Léger · SmolLM2 (≈ 200 Mo)</option>
+      <option value="quality">Multilingue · Qwen (≈ 800 Mo)</option>
+    </select>
+    <button id="load" type="button" class="primary">Charger l’IA</button>
+    <button id="clear" type="button" title="Supprimer l'historique stocké sur cet appareil">Effacer</button>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite">Sélectionnez le modèle et touchez « Charger l’IA ».</p>
+  <progress id="progress" max="100" value="0" aria-label="Progression du téléchargement du modèle"></progress>
+  <main id="chat" class="chat" aria-label="Discussion locale">
+    <div id="welcome" class="welcome">
+      <div class="circle" aria-hidden="true">N</div>
+      <h2>Bonjour, je suis NikoAssist</h2>
+      <p>Je peux discuter, reformuler un texte et proposer des idées, sans serveur et sans clé Mistral.
+      Le modèle léger fonctionne sur davantage d'appareils ; Qwen offre généralement de meilleurs résultats en français.</p>
+    </div>
+  </main>
+  <div class="composer">
+    <form id="chat-form">
+      <textarea id="message" maxlength="2000" rows="2" placeholder="Écrivez votre message en français…" aria-label="Message à NikoAssist" required></textarea>
+      <button class="primary send" id="send" type="submit" disabled>Envoyer</button>
+    </form>
+    <small>Les messages sont conservés uniquement dans ce navigateur. Vérifiez les réponses importantes : les petits modèles peuvent se tromper.
+    Le téléchargement initial et la disponibilité hors ligne dépendent du réseau et du cache de votre navigateur.</small>
+  </div>
+  <div class="footer">NikoAssist Local · Modèles open source · Aucun backend IA ni compte requis</div>
+</div>
+<script type="module" src="/local-app.js"></script>
+</body>
+</html>
