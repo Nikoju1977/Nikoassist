@@ -2,8 +2,8 @@
  * Never cache API/WS responses, HTML documents, model output or credentials.
  * Only anonymous, hash-versioned build assets can be cached.
  */
-const STATIC_CACHE = "nikoassist-static-v1";
-const CORE = ["/offline.html", "/icon.svg", "/icon-192.png", "/icon-512.png", "/manifest.webmanifest"];
+const STATIC_CACHE = "nikoassist-static-v2";
+const CORE = ["/offline.html", "/local.html", "/local-app.js", "/local-worker.js", "/icon.svg", "/icon-192.png", "/icon-512.png", "/manifest.webmanifest"];
 const ASSET_PATTERN = /^\/assets\/[^/]+-[\w-]{8,}\.(?:js|css|woff2?|svg|png)$/;
 
 self.addEventListener("install", (event) => {
@@ -34,9 +34,19 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/") || url.pathname === "/api" || url.pathname.startsWith("/ws") || url.pathname.startsWith("/auth")) return;
   if (req.mode === "navigate") {
     event.respondWith(fetch(req).catch(async () => {
-      const fallback = await caches.match("/offline.html");
+      // Only the public local UI shell is cached; no private HTML or API data.
+      // Model weights and the inference library must already be cached.
+      const safeShell = url.pathname === "/local.html" ? "/local.html" : "/offline.html";
+      const fallback = await caches.match(safeShell);
       return fallback || new Response("NikoAssist hors ligne", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     }));
+    return;
+  }
+  if (url.pathname === "/local-app.js" || url.pathname === "/local-worker.js") {
+    event.respondWith(fetch(req).catch(async () =>
+      (await caches.match(url.pathname)) ||
+      new Response("Local app unavailable", { status: 503, headers: { "Content-Type": "text/plain" } })
+    ));
     return;
   }
   if (url.search || !ASSET_PATTERN.test(url.pathname)) return;
