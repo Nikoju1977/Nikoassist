@@ -138,6 +138,8 @@ class NanoMuseApp:
         # NIKOASSIST_AGENT_TEAM_V1
         from nanomuse.nikoassist.tool import NikoAssistTeamTool
         self.tools.add(NikoAssistTeamTool(app=self))
+        from nanomuse.nikoassist.openmontage_tool import OpenMontageTool
+        self.tools.add(OpenMontageTool(app=self))
         self.agent = MuseAgent(
             settings=settings,
             llm=self.llm,
