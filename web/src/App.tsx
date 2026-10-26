@@ -215,17 +215,64 @@ export default function App() {
 /** The first seconds: the socket is on its way, or the runtime cannot be reached at all. */
 function Connecting({ error }: { error: string | null }) {
   const t = useT();
+  const [backendMissing, setBackendMissing] = useState<boolean | null>(null);
+
+  // An installed PWA can load perfectly while its backend is absent. A 404 on
+  // /api/health distinguishes the static Vercel site from a temporarily
+  // unreachable runtime. Do not send tokens or cache this diagnostic request.
+  useEffect(() => {
+    if (!error) return;
+    const controller = new AbortController();
+    void fetch("/api/health", { cache: "no-store", signal: controller.signal })
+      .then((response) => {
+        if (!controller.signal.aborted) setBackendMissing(response.status === 404);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setBackendMissing(false);
+      });
+    return () => controller.abort();
+  }, [error]);
+
   return (
-    <div className="mx-auto flex h-[100dvh] max-w-sm flex-col items-center justify-center px-6 text-center">
-      {/* the web's splash: the app's mark, no face (the face is the Muse, who is not here yet) */}
-      <BrandMark size={72} />
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[460px] flex-col items-center justify-center px-6 py-12 text-center">
+      <BrandMark size={88} />
       {error ? (
         <>
-          <p className="mt-6 text-[15px] font-medium">{t("Could not reach your nanoMuse.")}</p>
-          <p className="mt-1.5 text-[13px] text-muted">{t(error)}</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-full bg-fg px-5 py-2 text-[14px] font-medium text-bg">
-            {t("Try again")}
+          <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.13em] text-muted">
+            NikoAssist · Niko Studio Design
+          </p>
+          <h1 className="mt-4 text-[23px] font-bold leading-tight tracking-tight">
+            {backendMissing ? "Le moteur IA n'est pas encore connecté" : "Connexion au serveur indisponible"}
+          </h1>
+          <p className="mt-3 text-[14px] leading-relaxed text-muted">
+            {backendMissing
+              ? "La PWA est bien installée et le site fonctionne. Il manque le serveur nanoMuse qui traite les conversations, la mémoire et les actions."
+              : "Impossible de joindre le serveur NikoAssist pour le moment. Si le problème persiste, vérifiez le déploiement du moteur IA."}
+          </p>
+          <div className="mt-6 w-full rounded-2xl border border-border bg-surface-2/50 px-5 py-4 text-left text-[13px] leading-relaxed">
+            <p className="font-medium text-fg">✓ Interface Web accessible</p>
+            <p className="mt-2 text-muted">
+              {backendMissing ? "○ Serveur IA à déployer" : "○ Vérification de la connexion au moteur IA"}
+            </p>
+          </div>
+          <a
+            href="https://github.com/Nikoju1977/Nikoassist/blob/main/docs/DEPLOIEMENT_BACKEND.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 flex min-h-[46px] w-full items-center justify-center rounded-2xl bg-fg px-5 py-3 text-[14px] font-semibold text-bg"
+          >
+            Configurer le moteur NikoAssist
+          </a>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-3 min-h-[46px] w-full rounded-2xl border border-border px-5 py-3 text-[14px] font-medium text-fg hover:bg-surface-2"
+          >
+            Réessayer la connexion
           </button>
+          <p className="mt-5 text-[12px] leading-relaxed text-muted">
+            Ne saisissez pas votre clé API Mistral sur cette page. Elle doit être stockée dans le coffre chiffré du serveur.
+          </p>
         </>
       ) : (
         <p className="mt-6 flex items-center gap-2 text-[14px] text-muted">
