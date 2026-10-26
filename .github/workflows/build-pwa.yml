@@ -1,0 +1,80 @@
+name: NikoAssist PWA — build and checks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-pwa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pwa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout full source
+        uses: actions/checkout@v4
+        with:
+          ref: source-nikoassist
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install locked dependencies
+        working-directory: web
+        run: npm ci
+      - name: Lint, typecheck and unit tests
+        working-directory: web
+        run: npm run check
+      - name: Compile PWA production bundle
+        working-directory: web
+        run: npm run build
+      - name: Validate installable PWA resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATIC=nanomuse/server/static
+          test -s "$STATIC/index.html"
+          test -s "$STATIC/manifest.webmanifest"
+          test -s "$STATIC/sw.js"
+          test -s "$STATIC/offline.html"
+          test -s "$STATIC/icon-192.png"
+          test -s "$STATIC/icon-512.png"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("nanomuse/server/static")
+          m=json.loads((p/"manifest.webmanifest").read_text())
+          assert m["short_name"]=="NikoAssist"
+          assert m["display"]=="standalone"
+          assert m["start_url"]=="/"
+          assert any(i.get("sizes")=="192x192" for i in m["icons"])
+          assert any(i.get("sizes")=="512x512" for i in m["icons"])
+          sw=(p/"sw.js").read_text()
+          assert 'url.pathname.startsWith("/api/")' in sw
+          assert 'req.mode === "navigate"' in sw
+          print("PWA manifest, service worker and offline assets OK")
+          PY
+      - name: Package static PWA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd nanomuse/server/static
+          zip -q -r "$RUNNER_TEMP/NikoAssist-PWA.zip" .
+          cd "$RUNNER_TEMP"
+          sha256sum NikoAssist-PWA.zip > NikoAssist-PWA-SHA256SUMS.txt
+      - name: Upload downloadable PWA archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: NikoAssist-PWA-web
+          path: |
+            ${{ runner.temp }}/NikoAssist-PWA.zip
+            ${{ runner.temp }}/NikoAssist-PWA-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
