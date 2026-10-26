@@ -25,6 +25,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -193,7 +194,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 showError("Réponse locale impossible : ${e.message ?: "erreur inconnue"}")
             } finally {
-                withContext(Dispatchers.Main) {
+                withContext(NonCancellable + Dispatchers.Main) {
                     input.isEnabled = true
                     action.isEnabled = true
                 }
