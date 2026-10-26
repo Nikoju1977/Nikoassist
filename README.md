@@ -1,4 +1,7 @@
-# NikoAssist — par Niko Studio Design
+# NikoAssist — Studio Niko Design
+
+> **Projet signature · 03/06 · AGENTS IA** — [Étude de projet : problème, choix techniques et limites](https://github.com/Nikoju1977/Nikoju1977/blob/main/SHOWCASE.md) · [Portfolio Studio Niko Design](https://github.com/Nikoju1977).
+
 
 **Assistant IA multi-agents pour iOS, Android et ordinateurs**, construit à partir du projet libre [nanoMuse](https://github.com/nano-muse/nanoMuse).
 
