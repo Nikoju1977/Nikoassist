@@ -69,6 +69,49 @@ jobs:
           zip -q -r "$RUNNER_TEMP/NikoAssist-PWA.zip" .
           cd "$RUNNER_TEMP"
           sha256sum NikoAssist-PWA.zip > NikoAssist-PWA-SHA256SUMS.txt
+      - name: Build Vercel deployment output
+        working-directory: web
+        env:
+          VERCEL: "1"
+        run: npm run build
+      - name: Verify Vercel-ready static bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s web/dist/index.html
+          test -s web/dist/manifest.webmanifest
+          test -s web/dist/sw.js
+          test -s web/dist/offline.html
+          test -s web/dist/icon-192.png
+          test -s web/dist/icon-512.png
+          test -s web/vercel.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.loads(Path("web/vercel.json").read_text())
+          assert cfg["framework"]=="vite"
+          assert cfg["outputDirectory"]=="dist"
+          manifest=json.loads(Path("web/dist/manifest.webmanifest").read_text())
+          assert manifest["short_name"]=="NikoAssist"
+          print("Vercel-ready NikoAssist PWA verified")
+          PY
+      - name: Package Vercel static dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/dist
+          zip -q -r "$RUNNER_TEMP/NikoAssist-PWA-Vercel-dist.zip" .
+          cd "$RUNNER_TEMP"
+          sha256sum NikoAssist-PWA-Vercel-dist.zip > NikoAssist-PWA-Vercel-SHA256SUMS.txt
+      - name: Upload Vercel-ready PWA archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: NikoAssist-PWA-Vercel
+          path: |
+            ${{ runner.temp }}/NikoAssist-PWA-Vercel-dist.zip
+            ${{ runner.temp }}/NikoAssist-PWA-Vercel-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
       - name: Upload downloadable PWA archive
         uses: actions/upload-artifact@v4
         with:
