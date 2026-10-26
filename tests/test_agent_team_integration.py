@@ -78,6 +78,12 @@ class FakeMuseAgent:
         self.__class__.instances.append(self)
 
     async def run(self, text, purpose=None):
+        # Tool-call evidence required for the next agent in action mode.
+        name = "phone_act" if self.settings.agent.name.endswith("operator") else "web_search"
+        self.messages.append(SimpleNamespace(
+            role=MessageRole.ASSISTANT,
+            tool_calls=[SimpleNamespace(function=SimpleNamespace(name=name))],
+        ))
         return f"Mission simulée par {self.settings.agent.name}"
 
 
