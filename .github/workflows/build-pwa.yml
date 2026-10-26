@@ -35,6 +35,34 @@ jobs:
       - name: Compile PWA production bundle
         working-directory: web
         run: npm run build
+      - name: Validate self-hosted local chat code
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check web/public/local-app.js
+          node --check web/public/local-worker.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          public=Path("web/public")
+          assert (public/"local.html").is_file()
+          assert (public/"local-app.js").is_file()
+          assert (public/"local-worker.js").is_file()
+          html=(public/"local.html").read_text()
+          assert 'src="/local-app.js"' in html
+          assert 'href="/manifest.webmanifest"' in html
+          worker=(public/"local-worker.js").read_text()
+          assert "onnx-community/SmolLM2-135M-Instruct-ONNX" in worker
+          assert "onnx-community/Qwen2.5-0.5B-Instruct" in worker
+          assert '"webgpu"' in worker and '"wasm"' in worker
+          assert '"/api/' not in worker
+          assert '"/ws"' not in worker
+          p=json.loads((public/"manifest.webmanifest").read_text())
+          assert p["start_url"]=="/local.html"
+          sw=(public/"sw.js").read_text()
+          assert '"/local.html"' in sw and '"/local-worker.js"' in sw
+          print("Local mode files, manifest, worker fallback and syntax: OK")
+          PY
       - name: Validate installable PWA resources
         shell: bash
         run: |
@@ -53,7 +81,7 @@ jobs:
           m=json.loads((p/"manifest.webmanifest").read_text())
           assert m["short_name"]=="NikoAssist"
           assert m["display"]=="standalone"
-          assert m["start_url"]=="/"
+          assert m["start_url"]=="/local.html"
           assert any(i.get("sizes")=="192x192" for i in m["icons"])
           assert any(i.get("sizes")=="512x512" for i in m["icons"])
           sw=(p/"sw.js").read_text()
