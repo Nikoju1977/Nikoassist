@@ -51,7 +51,7 @@ class ExecutionBudget:
 ROLE_TOOLS: dict[Role, frozenset[str]] = {
     Role.RESEARCHER: frozenset({"web_search", "web_fetch", "recall"}),
     Role.ANALYST: frozenset({"web_search", "web_fetch", "recall"}),
-    Role.CREATOR: frozenset({"files", "skills"}),
+    Role.CREATOR: frozenset({"files", "skills", "openmontage"}),
     Role.OPERATOR: frozenset({
         "phone_screen", "phone_act", "phone_task", "computer_screen",
         "computer_act", "computer_task", "browser", "devices",
