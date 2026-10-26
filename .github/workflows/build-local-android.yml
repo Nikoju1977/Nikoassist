@@ -37,6 +37,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default `tools` SDK package has been removed upstream.
+          packages: platform-tools
 
       - name: Install pinned Android native toolchains
         shell: bash
