@@ -256,12 +256,21 @@ function Connecting({ error }: { error: string | null }) {
             </p>
           </div>
           <a
+            href="/local.html"
+            className="mt-6 flex min-h-[46px] w-full items-center justify-center rounded-2xl bg-fg px-5 py-3 text-[14px] font-semibold text-bg"
+          >
+            Démarrer gratuitement sans serveur
+          </a>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted">
+            Un modèle open source sera téléchargé sur votre téléphone. L'IA pourra ensuite fonctionner localement, sans clé ni abonnement.
+          </p>
+          <a
             href="https://github.com/Nikoju1977/Nikoassist/blob/main/docs/DEPLOIEMENT_BACKEND.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 flex min-h-[46px] w-full items-center justify-center rounded-2xl bg-fg px-5 py-3 text-[14px] font-semibold text-bg"
+            className="mt-3 text-[12px] text-muted underline underline-offset-2"
           >
-            Configurer le moteur NikoAssist
+            Option avancée : connecter un serveur nanoMuse
           </a>
           <button
             type="button"
