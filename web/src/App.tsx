@@ -59,7 +59,7 @@ export default function App() {
   // The document title follows the agent's name.
   useEffect(() => {
     const name = state.profile?.name?.trim();
-    document.title = name && name.toLowerCase() !== "nanomuse" ? `${name} · nanoMuse` : "nanoMuse";
+    document.title = name && name.toLowerCase() !== "nanomuse" ? `${name} · NikoAssist` : "NikoAssist";
   }, [state.profile?.name]);
 
   // the desktop's quick-chat shortcut: to the chat, with the composer focused
