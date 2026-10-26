@@ -1,9 +1,9 @@
 # NikoAssist — builds mobiles expérimentaux
 
-Deux workflows GitHub Actions sont disponibles sur la branche `main` :
+Deux workflows GitHub Actions complets sont disponibles sur la branche `main`. Ils compilent aussi les bibliothèques natives rclone, nécessaires aux applications :
 
-- [Android APK](../.github/workflows/android-apk.yml) : construit les dépendances natives et produit un APK **debug** arm64, signé avec la clé de débogage du runner. L'APK est destiné aux tests et **pas** à la distribution Play Store.
-- [iOS build](../.github/workflows/ios-build.yml) : construit les dépendances iSH/FFmpeg/LAME et produit une archive ZIP de `Minis.app` **non signée**. Ce fichier **ne peut pas être installé directement sur un iPhone** : il faut une équipe Apple Developer, un identifiant d'application, des profils et certificats de signature, puis éventuellement TestFlight.
+- [Android APK](../.github/workflows/build-android.yml) : construit les dépendances natives et produit un APK **debug** arm64, signé avec la clé de débogage du runner. L'APK est destiné aux tests et **pas** à la distribution Play Store.
+- [iOS build](../.github/workflows/build-ios.yml) : construit les dépendances iSH/FFmpeg/LAME et produit une archive ZIP de `Minis.app` **non signée**. Ce fichier **ne peut pas être installé directement sur un iPhone** : il faut une équipe Apple Developer, un identifiant d'application, des profils et certificats de signature, puis éventuellement TestFlight.
 
 ## Démarrer un build
 
