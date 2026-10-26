@@ -1,9 +1,9 @@
 {
   "name": "NikoAssist — Niko Studio Design",
   "short_name": "NikoAssist",
-  "description": "Assistant IA personnel multi-agents, propulsé par nanoMuse. Recherche, création et actions avec votre serveur privé.",
+  "description": "Assistant IA gratuit fonctionnant sur le téléphone avec un petit modèle libre. Mode local sans serveur ni clé API ; fonctions avancées selon le moteur connecté.",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/local.html",
   "scope": "/",
   "display": "standalone",
   "display_override": [
@@ -41,9 +41,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Assistant",
-      "short_name": "Chat",
-      "url": "/#chat",
+      "name": "NikoAssist local",
+      "short_name": "Chat local",
+      "url": "/local.html",
       "icons": [
         {
           "src": "/icon-192.png",
@@ -52,9 +52,9 @@
       ]
     },
     {
-      "name": "Objectifs",
-      "short_name": "Objectifs",
-      "url": "/#goals",
+      "name": "Interface complète",
+      "short_name": "Serveur",
+      "url": "/",
       "icons": [
         {
           "src": "/icon-192.png",
