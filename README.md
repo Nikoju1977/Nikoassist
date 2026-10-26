@@ -15,7 +15,7 @@
 - **Sentinel** : actions et outils sensibles soumis aux autorisations du moteur nanoMuse ; `create` et `act` classés sensibles avant la délégation.
 - **Récupération prudente** : jamais de relance automatique des actions dont le résultat est incertain ; contrôle final et états vérifiables.
 - **Installateur idempotent et atomique**, `--dry-run`, restauration en cas d'échec d'écriture.
-- **19 tests de régression** dans `main` et workflow d'intégration sur le commit nanoMuse analysé.
+- **tests de régression automatisés** dans `main` et workflow d'intégration sur le commit nanoMuse analysé.
 
 ## Installer
 
@@ -24,9 +24,23 @@ Consulter [le guide d'installation](docs/INSTALLATION.md). Depuis un clone de ce
 ```bash
 python scripts/install_nikoassist.py --target ../nanoMuse --dry-run
 python scripts/install_nikoassist.py --target ../nanoMuse
-python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3'
+python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3' 'cryptography>=42,<48'
 python -m pytest -q tests/
 ```
+
+## Mistral AI + coffre de clés API
+
+Le fournisseur **Mistral AI** est pris en charge via l'API compatible OpenAI de nanoMuse. NikoAssist fournit un assistant de configuration qui **saisit la clé sans l'afficher**, la place dans le coffre chiffré natif de nanoMuse et enregistre uniquement `{{vault:MISTRAL_API_KEY}}` dans la configuration.
+
+```bash
+python scripts/install_nikoassist.py --target ../nanoMuse
+python scripts/configure_mistral.py --target ../nanoMuse
+python scripts/configure_mistral.py --target ../nanoMuse --check
+```
+
+Modèle par défaut : `mistral-small-latest`. **La clé réelle est à créer dans votre propre compte Mistral Studio et à saisir localement ; elle ne doit pas être publiée, transmise dans le chat, ni intégrée aux applications mobiles.** La vérification `--check` est hors ligne : elle ne garantit pas l'authentification réseau.
+
+Voir le [guide Mistral AI et coffre](docs/MISTRAL_VAULT.md).
 
 ## Niveau de validation
 
