@@ -41,7 +41,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          brew install meson ninja llvm libarchive pkg-config
+          brew install meson ninja llvm lld libarchive pkg-config
+          echo "$(brew --prefix lld)/bin" >> "$GITHUB_PATH"
+          test -x "$(brew --prefix lld)/bin/ld.lld"
+
+      - name: Smoke-test Linux-arm64 LLVM linker required by iSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          LLVM_CLANG="$(brew --prefix llvm)/bin/clang"
+          printf 'void probe(void) {}\n' | "$LLVM_CLANG" -target aarch64-linux-gnu -fuse-ld=lld -nostdlib -shared -fPIC -x c - -o "$RUNNER_TEMP/nikoassist-vdso-probe.so"
+          test -s "$RUNNER_TEMP/nikoassist-vdso-probe.so"
 
       - name: Build LAME (iOS arm64)
         shell: bash
@@ -75,6 +85,20 @@ jobs:
           set -euo pipefail
           bash deps/prepare_alpine_rootfs.sh
           test -d deps/resources
+
+      - name: Set up Go for iOS rclone library
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: android/deps/rclone-mobile/go.mod
+          cache-dependency-path: android/deps/rclone-mobile/go.sum
+
+      - name: Build rclone XCFramework for iOS
+        shell: bash
+        working-directory: android
+        run: |
+          set -euo pipefail
+          bash deps/build_rclone_ios.sh
+          test -d deps/frameworks/Rclone.xcframework
 
       - name: Compile NikoAssist iOS app for physical devices without signing
         shell: bash
