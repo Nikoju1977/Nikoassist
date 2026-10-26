@@ -77,7 +77,8 @@ jobs:
         shell: bash
         run: |
           export NIKO_TEST_DATA_DIR="$RUNNER_TEMP/niko-mistral-test"
-          PYTHONPATH="$PWD/upstream" python - <<'PY'
+          # Run inside upstream: repository overlay has a partial nanomuse namespace.
+          (cd upstream && python - <<'PY'
           import json
           import os
           from pathlib import Path
@@ -116,6 +117,7 @@ jobs:
           assert (directory / "vault.enc").stat().st_mode & 0o077 == 0
           print("Mistral + native encrypted vault integration: OK (offline)")
           PY
+          )
           python scripts/configure_mistral.py --target upstream --data-dir "$NIKO_TEST_DATA_DIR" --check
           python scripts/configure_mistral.py --target upstream --data-dir "$NIKO_TEST_DATA_DIR" --use-existing --model mistral-small-latest
       - uses: actions/upload-artifact@v4
