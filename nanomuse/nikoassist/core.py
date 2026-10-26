@@ -51,7 +51,7 @@ class ExecutionBudget:
 ROLE_TOOLS: dict[Role, frozenset[str]] = {
     Role.RESEARCHER: frozenset({"web_search", "web_fetch", "recall"}),
     Role.ANALYST: frozenset({"web_search", "web_fetch", "recall"}),
-    Role.CREATOR: frozenset({"files", "skills"}),
+    Role.CREATOR: frozenset({"files", "skills", "openmontage"}),
     Role.OPERATOR: frozenset({
         "phone_screen", "phone_act", "phone_task", "computer_screen",
         "computer_act", "computer_task", "browser", "devices",
@@ -149,3 +149,14 @@ def report_status(*, error: str | None, tool_errors: list[str], tool_calls: int)
     if tool_errors:
         return "partial"
     return "reported" if tool_calls else "unverified"
+
+
+def should_halt(status: str, mode: str) -> bool:
+    """Stop dependent tasks after an error or outcome with uncertain effects.
+
+    Tool invocation alone does not verify success. In act mode, an answer
+    without tool calls never authorizes a subsequent action.
+    """
+    return status in {"failed", "partial", "unknown"} or (
+        mode == "act" and status == "unverified"
+    )
