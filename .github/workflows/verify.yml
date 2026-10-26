@@ -66,11 +66,17 @@ jobs:
           from nanomuse.schema import RiskLevel
           from nanomuse.tools.base import BaseTool
           from nanomuse.nikoassist.core import should_halt
+          from nanomuse.nikoassist.openmontage_tool import OpenMontageTool
           assert issubclass(NikoAssistTeamTool, BaseTool)
           team = NikoAssistTeamTool(app=object())
           assert team.name == "agent_team"
           assert team.assess({"goal": "test", "mode": "act"}).risk == RiskLevel.SENSITIVE
           assert should_halt("unknown", "act")
+          connector = OpenMontageTool(app=object())
+          assert issubclass(OpenMontageTool, BaseTool)
+          assert connector.assess({"action": "prepare"}).risk == RiskLevel.SENSITIVE
+          assert connector.assess({"action": "list"}).risk == RiskLevel.SAFE
+          assert "self.tools.add(OpenMontageTool(app=self))" in __import__("pathlib").Path("nanomuse/app.py").read_text()
           print("Native nanoMuse integration import: OK")
           PY
       - name: Verify Mistral provider and encrypted vault with nonworking test key
