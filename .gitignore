@@ -14,3 +14,9 @@ dist/
 *.p12
 *.mobileprovision
 local.properties
+
+# Never commit local encrypted secrets, vault keys or runtime settings
+**/vault.enc
+**/vault.key
+**/vault.tmp
+**/app-settings.json
