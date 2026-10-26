@@ -11,7 +11,9 @@ const api = (process.env.NANOMUSE_API ?? "127.0.0.1:8787").replace(/^https?:\/\/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: "../nanomuse/server/static",
+    // Vercel builds from web/ and must serve a local dist/ directory.
+    // Native nanoMuse continues bundling assets inside its Python package.
+    outDir: process.env.VERCEL ? "dist" : "../nanomuse/server/static",
     emptyOutDir: true,
     sourcemap: false,
   },
