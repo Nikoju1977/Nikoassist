@@ -53,15 +53,26 @@ def plan(target: Path, *, brand: bool = True) -> dict[Path, bytes]:
             result[destination] = content
 
     anchor = "        self.tools = self._build_tools()\n"
+    team_line = "        self.tools.add(NikoAssistTeamTool(app=self))\n"
+    montage_lines = (
+        "        from nanomuse.nikoassist.openmontage_tool import OpenMontageTool\n"
+        "        self.tools.add(OpenMontageTool(app=self))\n"
+    )
     insert = (
         "        " + INSTALL_MARK + "\n"
         "        from nanomuse.nikoassist.tool import NikoAssistTeamTool\n"
-        "        self.tools.add(NikoAssistTeamTool(app=self))\n"
+        + team_line + montage_lines
     )
+
     def integrate(text: str) -> str:
-        if INSTALL_MARK in text:
+        if "self.tools.add(OpenMontageTool(app=self))" in text:
             return text
+        if INSTALL_MARK in text:
+            if team_line not in text:
+                raise ValueError("Existing NikoAssist integration point changed")
+            return text.replace(team_line, team_line + montage_lines, 1)
         return _replace(text, anchor, anchor + insert, required=True)
+
     stage("nanomuse/app.py", integrate, required=True)
 
     if brand:
