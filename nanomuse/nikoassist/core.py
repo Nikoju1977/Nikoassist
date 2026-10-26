@@ -149,3 +149,14 @@ def report_status(*, error: str | None, tool_errors: list[str], tool_calls: int)
     if tool_errors:
         return "partial"
     return "reported" if tool_calls else "unverified"
+
+
+def should_halt(status: str, mode: str) -> bool:
+    """Stop dependent tasks after an error or outcome with uncertain effects.
+
+    Tool invocation alone does not verify success. In act mode, an answer
+    without tool calls never authorizes a subsequent action.
+    """
+    return status in {"failed", "partial", "unknown"} or (
+        mode == "act" and status == "unverified"
+    )
