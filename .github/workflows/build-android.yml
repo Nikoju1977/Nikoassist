@@ -75,6 +75,24 @@ jobs:
           bash scripts/prepare_android_sandbox.sh
           test -s src/android/app/src/main/assets/alpine-minirootfs.tar.gz
 
+      - name: Set up Go for rclone mobile bindings
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: android/deps/rclone-mobile/go.mod
+          cache-dependency-path: android/deps/rclone-mobile/go.sum
+
+      - name: Compile rclone Android AAR (required Gradle dependency)
+        shell: bash
+        working-directory: android
+        run: |
+          set -euo pipefail
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          gomobile init
+          bash deps/build_rclone_android.sh
+          install -D deps/build/rclone/rclone.aar src/android/app/libs/rclone.aar
+          test -s src/android/app/libs/rclone.aar
+
       - name: Build Android debug APK
         shell: bash
         working-directory: android/src/android
