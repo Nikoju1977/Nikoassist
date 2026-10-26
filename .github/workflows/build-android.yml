@@ -99,7 +99,14 @@ jobs:
         run: |
           set -euo pipefail
           cp app/provider-customization.properties.example app/provider-customization.properties
-          bash ./gradlew --no-daemon :app:assembleDebug
+          # Kotlin compiler OOMed with the 2 GiB default Gradle heap on GitHub runners.
+          # Run Kotlin inside the bounded Gradle JVM to avoid a second large daemon.
+          # Limit workers so native packaging and Kotlin do not exhaust runner RAM.
+          free -m
+          bash ./gradlew --no-daemon --no-parallel --max-workers=2 \
+            -Dorg.gradle.jvmargs="-Xmx4608m -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8" \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            :app:assembleDebug
           test -s app/build/outputs/apk/debug/app-debug.apk
 
       - name: Inspect APK assets and record SHA256
