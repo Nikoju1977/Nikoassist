@@ -42,6 +42,25 @@ Modèle par défaut : `mistral-small-latest`. **La clé réelle est à créer da
 
 Voir le [guide Mistral AI et coffre](docs/MISTRAL_VAULT.md).
 
+## OpenMontage : production vidéo assistée par IA
+
+NikoAssist dispose d'un outil optionnel `openmontage` qui découvre les pipelines
+de [OpenMontage officiel](https://github.com/calesthio/OpenMontage), prépare un
+brief de production et suit l'état des dossiers vidéo. La création du dossier
+nécessite l'approbation Sentinel ; le moteur OpenMontage reste installé
+séparément et sous **AGPL-3.0**.
+
+```bash
+# Sur le serveur, après installation et revue du projet officiel :
+export NIKOASSIST_OPENMONTAGE_ROOT=/opt/OpenMontage
+python scripts/install_nikoassist.py --target ../nanoMuse
+# Redémarrer le backend nanoMuse.
+```
+
+**Portée actuelle :** connecteur et passation de projet, **pas** de rendu vidéo
+automatique ni de génération sur le téléphone. Voir
+[le guide OpenMontage](docs/OPENMONTAGE.md).
+
 ## Niveau de validation
 
 **Vérifié :** tests de la politique, intégration automatisée de la surcouche dans un clone épinglé de nanoMuse, syntaxe Python et présence des points d'identité Android/iOS.
