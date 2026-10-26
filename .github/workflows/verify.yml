@@ -56,6 +56,23 @@ jobs:
           grep -q 'NikoAssist' upstream/android/src/ios/Minis.xcodeproj/project.pbxproj
           grep -q 'NikoAssist' upstream/android/src/android/app/src/main/res/values/strings.xml
           git -C upstream diff --stat > integration-summary.txt
+      - name: Install actual nanoMuse dependencies and import integrated agent
+        shell: bash
+        run: |
+          python -m pip install -e ./upstream
+          cd upstream
+          python - <<'PY'
+          from nanomuse.nikoassist.tool import NikoAssistTeamTool
+          from nanomuse.schema import RiskLevel
+          from nanomuse.tools.base import BaseTool
+          from nanomuse.nikoassist.core import should_halt
+          assert issubclass(NikoAssistTeamTool, BaseTool)
+          team = NikoAssistTeamTool(app=object())
+          assert team.name == "agent_team"
+          assert team.assess({"goal": "test", "mode": "act"}).risk == RiskLevel.SENSITIVE
+          assert should_halt("unknown", "act")
+          print("Native nanoMuse integration import: OK")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: integration-summary
