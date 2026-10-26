@@ -1,0 +1,83 @@
+name: NikoAssist iOS unsigned build (experimental)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nikoassist-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ios-build:
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - name: Checkout complete source and native submodules
+        uses: actions/checkout@v4
+        with:
+          ref: source-nikoassist
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Inspect Xcode toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          test -d android/deps/ish
+          test -f android/src/ios/Minis.xcodeproj/project.pbxproj
+
+      - name: Install native build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install ninja llvm libarchive pkg-config meson
+          python3 -m pip install --user meson || true
+
+      - name: Configure public, non-secret provider settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp android/src/ios/Configs/ProviderCustomization.xcconfig.example android/src/ios/Configs/ProviderCustomization.xcconfig
+
+      - name: Compile LAME, FFmpeg, iSH and Alpine filesystem
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd android
+          bash deps/build_lame.sh
+          bash deps/build_ffmpeg.sh
+          bash deps/build_ish.sh
+          bash deps/prepare_alpine_rootfs.sh
+
+      - name: Build unsigned iOS device app
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd android
+          xcodebuild -project src/ios/Minis.xcodeproj \
+            -scheme Minis \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/NikoAssistDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+          APP="$RUNNER_TEMP/NikoAssistDerivedData/Build/Products/Debug-iphoneos/Minis.app"
+          test -d "$APP"
+          cd "$(dirname "$APP")"
+          ditto -c -k --sequesterRsrc --keepParent Minis.app "$RUNNER_TEMP/NikoAssist-iOS-unsigned-app.zip"
+          shasum -a 256 "$RUNNER_TEMP/NikoAssist-iOS-unsigned-app.zip" > "$RUNNER_TEMP/NikoAssist-iOS-SHA256SUMS.txt"
+
+      - name: Upload unsigned app bundle and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: NikoAssist-iOS-unsigned-app
+          path: |
+            ${{ runner.temp }}/NikoAssist-iOS-unsigned-app.zip
+            ${{ runner.temp }}/NikoAssist-iOS-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
