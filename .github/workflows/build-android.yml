@@ -33,13 +33,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Check preinstalled Android command-line tools
+      - name: Locate preinstalled Android SDK and command-line tools
         shell: bash
         run: |
           set -euo pipefail
-          command -v sdkmanager
-          sdkmanager --version
-          test -n "${ANDROID_HOME:-}"
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -x "$SDK/cmdline-tools/latest/bin/sdkmanager"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" --version
 
       - name: Install pinned Android SDK and NDK
         shell: bash
