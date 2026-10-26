@@ -35,7 +35,7 @@ jobs:
           test -f upstream/LICENSE
           grep -q 'NIKOASSIST_AGENT_TEAM_V1' upstream/nanomuse/app.py
 
-      - name: Publish full source as separate branch (without force)
+      - name: Update full-source branch (fast-forward, no force)
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,17 +44,26 @@ jobs:
           cd upstream
           git config user.name "NikoAssist Build Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Create a self-contained root commit: GitHub cannot import missing
-          # parent objects from a partial/shallow upstream clone.
-          git checkout --orphan source-nikoassist
-          # The GITHUB_TOKEN has contents:write but not workflow authorisation.
-          # Upstream workflow YAML is CI configuration, not runtime source.
-          rm -rf .github/workflows
-          git add -A
-          git commit -m "feat: NikoAssist GPL full source based on nanoMuse"
           git remote add publish "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
           if git ls-remote --exit-code publish refs/heads/source-nikoassist >/dev/null 2>&1; then
-            echo "source-nikoassist exists; refusing to overwrite it automatically"
+            git fetch --no-tags publish refs/heads/source-nikoassist
+            git checkout -B source-nikoassist FETCH_HEAD
+            # Apply overlay again to the existing full-source branch, preserving
+            # its unrelated history and updating previously integrated files.
+            python "${GITHUB_WORKSPACE}/scripts/install_nikoassist.py" --target "${PWD}"
+          else
+            # First publication: isolated root commit. The action token does
+            # not have permission to publish upstream workflow files.
+            git checkout --orphan source-nikoassist
+            rm -rf .github/workflows
+          fi
+          python -m compileall -q nanomuse/nikoassist nanomuse/app.py
+          test -f LICENSE
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Full source is already synchronized"
             exit 0
           fi
+          git commit -m "chore: synchronize NikoAssist GPL full source"
+          # Refuse races and non-fast-forward updates (never force push).
           git push publish HEAD:refs/heads/source-nikoassist
