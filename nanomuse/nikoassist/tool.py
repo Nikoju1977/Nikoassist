@@ -16,7 +16,7 @@ from nanomuse.schema import Message, RiskLevel, Role as MessageRole, ToolResult
 from nanomuse.tools.base import BaseTool, CallAssessment, ToolCollection, int_arg
 from nanomuse.tools.terminate import Terminate
 from nanomuse.nikoassist.core import (
-    ExecutionBudget, Role, bounded_excerpt, parse_plan, report_status, selected_tools,
+    ExecutionBudget, Role, bounded_excerpt, parse_plan, report_status, selected_tools, should_halt,
 )
 
 _ROLE_INSTRUCTIONS = {
@@ -61,6 +61,7 @@ class NikoAssistTeamTool(BaseTool):
     app: Any = Field(exclude=True)
     budget: ExecutionBudget = Field(default_factory=ExecutionBudget, exclude=True)
     _run_lock: asyncio.Lock = PrivateAttr(default_factory=asyncio.Lock)
+    _in_flight: bool = PrivateAttr(default=False)
 
     def assess(self, args: dict[str, Any]) -> CallAssessment:
         mode = args.get("mode", "research")
@@ -154,10 +155,15 @@ class NikoAssistTeamTool(BaseTool):
             return ToolResult.fail("Objectif vide")
         if mode not in ("research", "create", "act"):
             return ToolResult.fail("Mode inconnu : research, create ou act")
-        if self._run_lock.locked():
+        # Mark busy before the next await to avoid a check/acquire race.
+        if self._in_flight:
             return ToolResult.fail("Mission déjà en cours; refus d'exécuter un doublon.")
-        async with self._run_lock:
-            return await self._execute_once(goal, mode, max_agents)
+        self._in_flight = True
+        try:
+            async with self._run_lock:
+                return await self._execute_once(goal, mode, max_agents)
+        finally:
+            self._in_flight = False
 
     async def _execute_once(self, goal: str, mode: str, max_agents: int) -> ToolResult:
         limit = int_arg(max_agents, 3, 1, min(4, self.budget.bounded().max_agents))
@@ -189,6 +195,9 @@ class NikoAssistTeamTool(BaseTool):
                 "role": task.role.value, "objective": task.objective,
                 "result": result, "audit": audit, "status": status,
             })
+            if should_halt(status, mode):
+                # Fail closed: never chain further operations on an unknown outcome.
+                break
 
         details = json.dumps(
             {"objective": goal, "mode": mode, "agents": records},
