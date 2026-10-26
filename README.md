@@ -78,7 +78,7 @@ La couche multi-agents est disponible dans le **runtime Python associé** ; les 
 
 Le code dérivé de nanoMuse et OpenMinis reste sous **GNU GPL-3.0-or-later**, avec les obligations de redistribution et les crédits d'origine. Voir [crédits et licences](LICENSE_NOTICE.md).
 
-Création : **Niko Studio Design**. Projet indépendant, non affilié à nanoMuse ou Meta.
+Adaptation, orchestration et documentation : **Studio Niko Design**. Projet indépendant, non affilié à nanoMuse ou Meta. Les auteurs d'origine et les obligations GPL sont indiqués dans [LICENSE_NOTICE.md](LICENSE_NOTICE.md).
 
 
 ## Builds Android et iOS (GitHub Actions)
