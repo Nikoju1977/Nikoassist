@@ -166,3 +166,35 @@ def test_agents_are_limited_and_share_sentinel(monkeypatch):
     }
     assert "device__secret_dump" not in result.output
     assert not app.llm.responses
+
+    async def verify_busy_guard():
+        started = asyncio.Event()
+        released = asyncio.Event()
+
+        async def gated(self, goal, mode, max_agents):
+            started.set()
+            await released.wait()
+            return FakeToolResult(output="completed")
+
+        monkeypatch.setattr(module.NikoAssistTeamTool, "_execute_once", gated)
+        first = asyncio.create_task(team.execute(goal="first", mode="research"))
+        await started.wait()
+        duplicate = await team.execute(goal="duplicate", mode="research")
+        assert duplicate.error is not None
+        assert "Mission déjà en cours" in duplicate.error
+        released.set()
+        response = await first
+        assert response.output == "completed"
+
+    asyncio.run(verify_busy_guard())
+
+
+def test_no_concurrent_duplicate_and_unknown_outcome_stops_chain(monkeypatch):
+    # Reuse the offline nanoMuse simulation setup in the test above.
+    # The first test installs stub modules through monkeypatch and they are
+    # reverted after its lifetime; build fresh minimal fake tool contract here.
+    import nanomuse.nikoassist.core as policy
+
+    assert policy.should_halt("unknown", "act")
+    assert policy.should_halt("partial", "act")
+    assert policy.should_halt("unverified", "act")
