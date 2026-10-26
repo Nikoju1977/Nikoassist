@@ -1,0 +1,1 @@
+"""NikoAssist Python extension namespace."""
