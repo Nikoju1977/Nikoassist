@@ -76,3 +76,13 @@ La couche multi-agents est disponible dans le **runtime Python associé** ; les 
 Le code dérivé de nanoMuse et OpenMinis reste sous **GNU GPL-3.0-or-later**, avec les obligations de redistribution et les crédits d'origine. Voir [crédits et licences](LICENSE_NOTICE.md).
 
 Création : **Niko Studio Design**. Projet indépendant, non affilié à nanoMuse ou Meta.
+
+
+## Builds Android et iOS (GitHub Actions)
+
+Les chaînes de compilation natives sont publiées dans `main` :
+
+- [Android — construire un APK de test arm64](.github/workflows/build-android.yml) : compile PRoot/Alpine puis `assembleDebug` et conserve l'APK comme artefact, **si le workflow réussit**.
+- [iOS — compiler une application d'appareil non signée](.github/workflows/build-ios.yml) : compile LAME, FFmpeg et iSH sur macOS puis effectue un build Xcode ; le `.app` produit **n'est pas directement installable sur iPhone** sans signature Apple.
+
+[Instructions de compilation et limites de distribution](docs/MOBILE_BUILDS.md). Aucun secret Mistral, certificat iOS ou keystore de distribution n'est inclus dans les builds.
