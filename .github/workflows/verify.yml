@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3'
+      - run: python -m pip install 'pytest>=8,<10' 'pydantic>=2,<3' 'cryptography>=42,<48'
       - name: Run regression tests
         run: python -m pytest -q tests/
       - name: Compile agent and installer
@@ -73,6 +73,51 @@ jobs:
           assert should_halt("unknown", "act")
           print("Native nanoMuse integration import: OK")
           PY
+      - name: Verify Mistral provider and encrypted vault with nonworking test key
+        shell: bash
+        run: |
+          export NIKO_TEST_DATA_DIR="$RUNNER_TEMP/niko-mistral-test"
+          PYTHONPATH="$PWD/upstream" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from nanomuse.config import (
+              Settings, apply_app_settings, load_app_settings, save_app_settings,
+          )
+          from nanomuse.llm import catalogue
+          from nanomuse.llm.factory import llm_ready
+          from nanomuse.nikoassist.mistral import configure_mistral, mistral_status
+          from nanomuse.vault import CredentialVault
+
+          directory = Path(os.environ["NIKO_TEST_DATA_DIR"])
+          directory.mkdir(parents=True, exist_ok=True)
+          assert catalogue.load().get("mistral").protocol == "openai"
+          save_app_settings(directory, {
+              "llm": {"provider": "deepseek", "base_url": "https://api.deepseek.com"},
+              "calendar": {"enabled": True},
+          })
+          demo_key = "ci-fake-mistral-key-NOT-VALID-NO-NETWORK"
+          report = configure_mistral(data_dir=directory, secret=demo_key)
+          assert report["network_verified"] is False
+          settings = Settings(data_dir=directory)
+          apply_app_settings(settings, load_app_settings(directory))
+          assert settings.llm.provider == "mistral"
+          assert settings.llm.endpoint == "https://api.mistral.ai/v1"
+          assert settings.llm.model == "mistral-small-latest"
+          assert settings.llm.api_key == "{{vault:MISTRAL_API_KEY}}"
+          assert load_app_settings(directory)["calendar"]["enabled"]
+          vault = CredentialVault(settings.vault_file, settings.vault_key_file)
+          assert vault.resolve(settings.llm.api_key) == demo_key
+          assert llm_ready(settings.llm, vault, directory)
+          assert mistral_status(data_dir=directory)["ready_offline"]
+          assert demo_key not in (directory / "app-settings.json").read_text()
+          assert demo_key.encode() not in (directory / "vault.enc").read_bytes()
+          assert (directory / "vault.key").stat().st_mode & 0o077 == 0
+          assert (directory / "vault.enc").stat().st_mode & 0o077 == 0
+          print("Mistral + native encrypted vault integration: OK (offline)")
+          PY
+          python scripts/configure_mistral.py --target upstream --data-dir "$NIKO_TEST_DATA_DIR" --check
+          python scripts/configure_mistral.py --target upstream --data-dir "$NIKO_TEST_DATA_DIR" --use-existing --model mistral-small-latest
       - uses: actions/upload-artifact@v4
         with:
           name: integration-summary
