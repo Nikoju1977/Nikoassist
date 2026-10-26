@@ -47,6 +47,10 @@ jobs:
           git remote add publish "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
           if git ls-remote --exit-code publish refs/heads/source-nikoassist >/dev/null 2>&1; then
             git fetch --no-tags publish refs/heads/source-nikoassist
+            # The pinned clone above contains transient overlay edits. Discard
+            # only these disposable checkout changes before changing branches.
+            git reset --hard HEAD
+            git clean -fd
             git checkout -B source-nikoassist FETCH_HEAD
             # Apply overlay again to the existing full-source branch, preserving
             # its unrelated history and updating previously integrated files.
