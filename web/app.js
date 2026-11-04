@@ -120,6 +120,42 @@ async function health(){
  catch{$('service-status').textContent='Services web indisponibles';}
 }
 $('year').textContent=new Date().getFullYear();
-renderTasks();health();
+
+// Explicit one-way handoff from Studio Niko Hub, encoded in URL fragment so it is not sent to Vercel.
+function importHubHandoff(){
+ const prefix='#handoff=';
+ if(!location.hash.startsWith(prefix))return;
+ const token=location.hash.slice(prefix.length);
+ // Clear potentially sensitive details from the address bar before any confirmation.
+ try{history.replaceState(null,'',location.pathname+location.search);}catch{}
+ if(token.length>6200){addMessage('assistant','Transfert du Hub refusé : lien trop volumineux.');return;}
+ let data;
+ try{
+  const raw=atob(token.replace(/-/g,'+').replace(/_/g,'/'));
+  const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));
+  data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+ }catch{addMessage('assistant','Transfert du Hub invalide : impossible de lire les données.');return;}
+ if(data.format!=='studio-niko-handoff-v1'||typeof data.project!=='string'||data.project.length>100||
+    !Array.isArray(data.tasks)||data.tasks.length<1||data.tasks.length>20||
+    !data.tasks.every(t=>t&&typeof t.text==='string'&&t.text.trim()&&t.text.length<=160&&typeof t.done==='boolean')){
+  addMessage('assistant','Transfert du Hub refusé : format ou contenu inattendu.');return;
+ }
+ const project=data.project.trim(), items=data.tasks;
+ if(!confirm('Importer '+items.length+' tâche(s) du projet « '+project+' » de Studio Niko Hub ? Confirme uniquement si ces tâches ne contiennent pas de données confidentielles.')){
+  addMessage('assistant','Import annulé. Aucune tâche n’a été modifiée.');return;
+ }
+ const existing=new Set(tasks.map(t=>t.text.toLocaleLowerCase('fr').trim()));
+ let count=0;
+ for(const item of items){
+  const name=item.text.trim();const key=name.toLocaleLowerCase('fr');
+  if(existing.has(key)||tasks.length>=200)continue;
+  tasks.unshift({id:String(Date.now())+'-'+Math.random().toString(36).slice(2,9),text:name,done:item.done,created:new Date().toISOString()});
+  existing.add(key);count++;
+ }
+ save();renderTasks();
+ addMessage('assistant','Projet « '+project+' » : '+count+' nouvelle(s) tâche(s) importée(s). Les doublons ont été ignorés. Les tâches restent sur ce navigateur.');
+}
+
+renderTasks();importHubHandoff();health();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}),{once:true});
 })();

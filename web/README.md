@@ -27,3 +27,8 @@ La route \`api/assistant.js\` ne contacte que deux services publics : Wikipédia
 ## Tests
 
 \`node web/check.cjs\` vérifie la syntaxe JavaScript et la présence des contrôles. Les tests d'intégration réseau et mobile doivent ensuite être exécutés contre le déploiement Vercel.
+
+
+## Import depuis Studio Niko Hub
+
+L'utilisateur choisit **Envoyer les tâches à Nikoassist** dans l'atelier du Hub. Seuls le nom du projet et jusqu'à 20 titres de tâches sont encodés dans le fragment \`#handoff=...\` (pas dans la requête HTTP) et transmis à l'onglet Nikoassist. Un second consentement explicite est demandé côté Nikoassist. Le fragment est supprimé de la barre d'adresse avant le dialogue. Les tâches importées sont sauvegardées **uniquement dans le navigateur Nikoassist** et les doublons sont évités. Aucun média, donnée de santé ni clé API ne doit être partagé par ce mécanisme.
