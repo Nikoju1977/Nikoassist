@@ -1,0 +1,19 @@
+{
+  "name": "NikoAssist Web — Studio Niko",
+  "short_name": "NikoAssist",
+  "description": "Assistant web public sans clé : recherche, météo, tâches et voix.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "theme_color": "#080d18",
+  "background_color": "#080d18",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
