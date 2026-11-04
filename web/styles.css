@@ -4,3 +4,16 @@
 @media(max-width:1180px){.shell{grid-template-columns:210px 1fr}.sidebar{padding:21px 13px}.main{padding-inline:23px}.main-grid{grid-template-columns:1fr}.tools-panel{display:grid;grid-template-columns:1fr 1fr;gap:24px}.tool-info{margin-top:5px}}
 @media(max-width:690px){.shell{display:block}.sidebar{position:relative;display:block;padding:15px 18px}.identity small{margin-top:4px}.sidebar .side-label,.sidebar .sidebar-bottom{display:none}.nav-list{margin-top:18px;display:flex;flex-direction:row;overflow-x:auto;gap:5px}.nav-link{white-space:nowrap;font-size:10px;padding:9px}.nav-link b{display:none}.main{padding:25px 14px 10px}.topbar{padding-bottom:25px}.topbar h1{font-size:33px}.topbar .back-link{display:none}.chat-panel{min-height:610px}.panel-header{padding:15px}.panel-header span:not(.orb-icon){font-size:9px}.messages{padding:18px 14px;min-height:300px;max-height:480px}.message-row{max-width:100%}.bubble{padding:12px;font-size:12px}.composer{padding:13px}.tools-panel{display:block;padding:20px;margin-top:16px}.tool-info{margin-top:26px}.suggestions button{font-size:9px}.disclaimer{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important}}
+
+.pwa-top-actions{display:flex;gap:11px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+#pwa-install{border:1px solid #a4d5d4;color:#112631;background:#b4dcd8;padding:12px 17px;font-size:11px;border-radius:5px;font-weight:800;white-space:nowrap}
+#pwa-install:hover{background:#d4ebe7}
+@media(max-width:690px){.pwa-top-actions{flex:none}#pwa-install{font-size:10px;padding:12px 10px}.topbar h1{font-size:clamp(24px,6vw,33px)}}
+/* Installation PWA — navigateur et écran d'accueil */
+.pwa-install-dialog{width:min(480px,calc(100% - 30px));border:1px solid #60858b;background:#142535;color:#eff4f7;border-radius:12px;box-shadow:0 26px 110px #000b;padding:27px 29px}
+.pwa-install-dialog::backdrop{background:#030913cb;backdrop-filter:blur(6px)}
+.pwa-install-dialog h2{font:600 25px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 16px}
+.pwa-install-dialog p{font-size:13px;line-height:1.8;color:#d0dde4}
+.pwa-install-dialog .install-hint{font-size:11px;color:#8fa5b3}
+#pwa-install-close{margin-top:12px;background:#d4b991;border:0;border-radius:5px;color:#101923;padding:12px 19px;font-weight:800}
+#pwa-install:disabled{opacity:.76;cursor:default}

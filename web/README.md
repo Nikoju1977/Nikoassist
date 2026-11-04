@@ -32,3 +32,10 @@ La route \`api/assistant.js\` ne contacte que deux services publics : Wikipédia
 ## Import depuis Studio Niko Hub
 
 L'utilisateur choisit **Envoyer les tâches à Nikoassist** dans l'atelier du Hub. Seuls le nom du projet et jusqu'à 20 titres de tâches sont encodés dans le fragment \`#handoff=...\` (pas dans la requête HTTP) et transmis à l'onglet Nikoassist. Un second consentement explicite est demandé côté Nikoassist. Le fragment est supprimé de la barre d'adresse avant le dialogue. Les tâches importées sont sauvegardées **uniquement dans le navigateur Nikoassist** et les doublons sont évités. Aucun média, donnée de santé ni clé API ne doit être partagé par ce mécanisme.
+
+
+## Installation PWA (Android, iPhone, ordinateur)
+
+L'application dispose d'icônes PNG 192×192 et 512×512, d'un service worker pour les ressources statiques et d'un bouton « Installer la PWA ». Android Chrome : bouton Installer, ou menu ⋮ → Installer l'application / Ajouter à l'écran d'accueil. iPhone Safari : Partager → Sur l'écran d'accueil. Chrome/Edge desktop : icône d'installation dans la barre d'adresse ou menu du navigateur.
+
+Une PWA n'est pas un APK signé. Hors ligne : interface et tâches locales accessibles si l'application a déjà été chargée ; recherche Wikipédia et météo nécessitent Internet.
