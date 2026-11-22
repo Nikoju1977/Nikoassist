@@ -10,6 +10,18 @@ permissions:
   contents: read
 
 jobs:
+  web-static:
+    name: NikoAssist Web — tasks backup and PWA
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate web controls and local task backups
+        run: node web/check.cjs
+
   unit-tests:
     name: Security and reliability
     runs-on: ubuntu-latest
