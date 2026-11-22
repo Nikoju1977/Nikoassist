@@ -102,6 +102,40 @@ $('export-tasks').addEventListener('click',()=>{
  const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
  const a=document.createElement('a');a.href=url;a.download='nikoassist-taches.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
+const importPicker=$('import-tasks-file');
+const importStatus=$('import-status');
+$('import-tasks').addEventListener('click',()=>importPicker.click());
+importPicker.addEventListener('change',async()=>{
+ const file=importPicker.files?.[0];
+ // Réinitialiser le contrôle pour permettre la relecture du même fichier.
+ importPicker.value='';
+ if(!file)return;
+ try{
+  const backup=window.NikoAssistTaskBackup;
+  if(!backup)throw Error('Le module de restauration n’est pas chargé. Recharge la page.');
+  if(file.size>backup.MAX_BYTES)throw Error('Sauvegarde trop volumineuse (256 Ko maximum).');
+  const incoming=backup.parse(await file.text());
+  const {toAdd,duplicates,limited}=backup.previewMerge(tasks,incoming);
+  if(!toAdd.length){
+   importStatus.textContent='Aucune tâche à ajouter : '+duplicates+' doublon(s), '+limited+' tâche(s) au-delà de la limite.';
+   return;
+  }
+  if(!confirm('Ajouter '+toAdd.length+' tâche(s) de cette sauvegarde à la liste actuelle ? Aucune tâche existante ne sera effacée.')){
+   importStatus.textContent='Import annulé. Aucune tâche modifiée.';
+   return;
+  }
+  const now=new Date().toISOString();
+  const imported=toAdd.map((task,index)=>({
+   id:String(Date.now())+'-'+index+'-'+Math.random().toString(36).slice(2,9),
+   text:task.text,done:task.done,created:now
+  }));
+  tasks=[...imported,...tasks];
+  save();renderTasks();
+  importStatus.textContent=imported.length+' tâche(s) importée(s), '+duplicates+' doublon(s) ignoré(s)'+(limited?', '+limited+' au-delà de la limite de 200':'')+'. Les anciennes tâches ont été conservées sur cet appareil.';
+ }catch(error){
+  importStatus.textContent='Import refusé : '+String(error?.message||'fichier incompatible')+'. Aucune tâche modifiée.';
+ }
+});
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(!SpeechRecognition){$('microphone').hidden=true;}
 else{
