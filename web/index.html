@@ -84,6 +84,13 @@
   #studio-niko-embedded-guide{top:max(6px,env(safe-area-inset-top,0px))!important;bottom:auto!important}
   #studio-niko-embedded-guide .sn-guide-sheet{top:calc(100% + 8px)!important;bottom:auto!important;max-height:calc(100dvh - 60px)!important}
 }
+/* Aide discrète : surface tactile de 44 px et disparition pendant la saisie. */
+#studio-niko-embedded-guide{width:44px!important;max-width:44px!important}
+#studio-niko-embedded-guide>summary{width:44px!important;height:44px!important;min-height:44px!important}
+@supports selector(body:has(textarea:focus)){
+ body:has(#message:focus) #studio-niko-embedded-guide:not([open]),
+ body:has(#task-input:focus) #studio-niko-embedded-guide:not([open]){opacity:0!important;visibility:hidden!important}
+}
 </style>
 <details id="studio-niko-embedded-guide" role="region" aria-label="Mode d'emploi de Nikoassist">
   <summary aria-label="Mode d’emploi" title="Ouvrir le mode d’emploi"><span class="sn-guide-question" aria-hidden="true">?</span><span class="sn-guide-label">Mode d’emploi</span></summary>
@@ -93,7 +100,7 @@
     <h2 id="studio-niko-guide-title">Nikoassist</h2>
     <p>Assistant web : météo, Wikipédia, calculatrice, tâches locales et dictée. Moteur Python distinct.</p>
     <h3>Premiers pas</h3>
-    <ol><li>Ouvrez l&#39;assistant web et saisissez « Météo à Nantes », « Qui est Alice Guy ? » ou « Calcule 2+2 ».</li><li>Ajoutez et cochez des tâches dans la colonne personnelle.</li><li>Utilisez « Lire les réponses » ou la dictée si votre navigateur le permet.</li></ol>
+    <ol><li>Ouvrez l&#39;assistant web et saisissez « Météo à Nantes », « Qui est Alice Guy ? » ou « Calcule 2+2 ».</li><li>Ajoutez et cochez des tâches dans la colonne personnelle.</li><li>Exportez ou réimportez une sauvegarde JSON locale ; l&#39;import demande confirmation et conserve les tâches existantes.</li><li>Utilisez « Lire les réponses » ou la dictée si votre navigateur le permet.</li></ol>
     <h3>Avant de commencer</h3>
     <p>Les moteurs IA et les commandes externes exigent parfois un fournisseur, des accès réseau ou une autorisation.</p>
     <div class="sn-guide-warning" role="note">Les outils web gratuits fonctionnent sans clé ; le moteur Python multi-agent n&#39;est pas raccordé à cette interface.</div>
