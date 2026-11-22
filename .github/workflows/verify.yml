@@ -21,6 +21,8 @@ jobs:
           node-version: '24'
       - name: Validate web controls and local task backups
         run: node web/check.cjs
+      - name: Check PWA cache update, offline fallback and API bypass
+        run: node web/sw-check.cjs
       - name: Chromium end-to-end task backup, privacy and mobile usability
         run: node web/browser-smoke.cjs
 
