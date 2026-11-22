@@ -121,14 +121,19 @@
   var guide=document.getElementById('studio-niko-embedded-guide');
   if(!guide)return;
   var trigger=guide.querySelector('summary');
-  document.addEventListener('focusin',function(e){
-    var id=e.target&&e.target.id;
+  function syncTyping(){
+    var active=document.activeElement;
+    var id=active&&active.id;
     if(id==='message'||id==='task-input')guide.dataset.typing='true';
-  });
+    else delete guide.dataset.typing;
+  }
+  document.addEventListener('focusin',syncTyping);
   document.addEventListener('focusout',function(e){
     var id=e.target&&e.target.id;
     if(id==='message'||id==='task-input')delete guide.dataset.typing;
   });
+  window.addEventListener('pageshow',syncTyping);
+  syncTyping();
   try{if(localStorage.getItem('studio-niko-guide-dock')==='right')guide.dataset.dock='right';}catch(e){}
   guide.querySelector('.sn-guide-close').addEventListener('click',function(){guide.open=false;trigger.focus();});
   guide.querySelector('.sn-guide-dock').addEventListener('click',function(){
