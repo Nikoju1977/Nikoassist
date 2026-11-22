@@ -25,6 +25,21 @@ jobs:
         run: node web/sw-check.cjs
       - name: Chromium end-to-end task backup, privacy and mobile usability
         run: node web/browser-smoke.cjs
+      - name: Regression tests for production deployment audit
+        run: node web/production-audit.test.cjs
+      - name: Inspect actual production HTTP without confusing it with CI success
+        run: node web/production-audit.cjs
+        env:
+          NIKOASSIST_AUDIT_REPORT: ${{ runner.temp }}/nikoassist-production-audit.json
+          NIKOASSIST_AUDIT_STRICT: '0'
+      - name: Attach production evidence (including stale reports)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nikoassist-production-http-audit
+          path: ${{ runner.temp }}/nikoassist-production-audit.json
+          if-no-files-found: warn
+          retention-days: 7
 
   unit-tests:
     name: Security and reliability
