@@ -17,3 +17,31 @@
 .pwa-install-dialog .install-hint{font-size:11px;color:#8fa5b3}
 #pwa-install-close{margin-top:12px;background:#d4b991;border:0;border-radius:5px;color:#101923;padding:12px 19px;font-weight:800}
 #pwa-install:disabled{opacity:.76;cursor:default}
+
+
+/* STUDIO NIKO UI V7 — assistant mobile, conversation sans zoom iOS */
+:where(.nav-link,.send-btn,.icon-btn,.ghost-btn,.suggestions button){touch-action:manipulation}
+:where(.message-row,.chat-panel,.tools-panel){overflow-wrap:anywhere}
+:where(button,a,input,textarea,select):focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+@media(max-width:690px){
+ .sidebar{padding:13px}
+ .nav-list{scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;gap:7px}
+ .nav-list .nav-link{min-height:46px;scroll-snap-align:start;flex:0 0 auto;padding:10px 12px;font-size:12px}
+ .main{padding:18px 12px calc(24px + env(safe-area-inset-bottom))}
+ .topbar{gap:12px;flex-wrap:wrap;padding-bottom:16px}
+ .topbar h1{font-size:clamp(25px,7vw,34px)}
+ .chat-panel{min-height:min(650px,calc(100dvh - 180px));border-radius:13px}
+ .panel-header{padding:14px 12px}
+ .messages{padding:14px 12px;min-height:220px;max-height:min(52dvh,520px)}
+ .bubble{font-size:.89rem;line-height:1.6}
+ .composer{padding:13px 11px}
+ .composer textarea{font-size:16px;min-height:60px}
+ .icon-btn{min-width:44px;min-height:44px}
+ .send-btn{min-height:46px;font-size:13px;padding:10px 14px}
+ .suggestions{gap:8px}
+ .suggestions button{min-height:40px;font-size:12px}
+ #task-form input{font-size:16px;min-height:44px}
+ #task-form button{min-width:44px;min-height:44px}
+ .tools-panel{padding:18px 14px}
+}
+
