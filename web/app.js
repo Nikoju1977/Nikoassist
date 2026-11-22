@@ -5,6 +5,28 @@ const taskKey='nikoassist-web-tasks-v1';
 let tasks=[];
 try{const value=JSON.parse(localStorage.getItem(taskKey)||'[]');if(Array.isArray(value))tasks=value.filter(x=>x&&typeof x.text==='string').slice(0,200);}catch{}
 const messages=$('messages');const composer=$('message');
+// Ne jamais laisser la bulle d'aide masquer les champs pendant la saisie tactile.
+// Cette synchronisation se fait aussi dans l'application principale, même si le
+// script optionnel du guide ne peut pas écouter les changements de focus.
+const floatingHelp=$('studio-niko-embedded-guide');
+function syncHelpDuringEditing(){
+ if(!floatingHelp)return;
+ const editing=document.activeElement===composer||document.activeElement===$('task-input');
+ if(editing&&!floatingHelp.open){
+  floatingHelp.style.setProperty('visibility','hidden','important');
+  floatingHelp.style.setProperty('opacity','0','important');
+ }else{
+  floatingHelp.style.removeProperty('visibility');
+  floatingHelp.style.removeProperty('opacity');
+ }
+}
+composer.addEventListener('focus',syncHelpDuringEditing);
+composer.addEventListener('input',syncHelpDuringEditing);
+$('task-input').addEventListener('focus',syncHelpDuringEditing);
+$('task-input').addEventListener('input',syncHelpDuringEditing);
+document.addEventListener('focusout',()=>setTimeout(syncHelpDuringEditing,0));
+window.addEventListener('pageshow',syncHelpDuringEditing);
+
 function save(){try{localStorage.setItem(taskKey,JSON.stringify(tasks));}catch{addMessage('assistant','Le stockage local est indisponible ; les modifications restent temporaires.');}}
 function addMessage(role,text,source=null){
  const row=document.createElement('div');row.className='message-row '+role;
