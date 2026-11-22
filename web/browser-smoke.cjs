@@ -108,7 +108,8 @@ async function main(){
   await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:3,mobile:true});
   assert.equal(await evaluate('(()=>{const b=document.querySelector("#import-tasks").getBoundingClientRect();return b.height>=44&&b.width>=44&&b.left>=0&&b.right<=innerWidth})()'),true,'Mobile import button must meet 44px target and stay onscreen');
   assert.equal(await evaluate('(()=>{const b=document.querySelector("#studio-niko-embedded-guide>summary").getBoundingClientRect();return b.height>=44&&b.width>=44&&b.left>=0&&b.right<=innerWidth})()'),true,'Mobile help target must meet 44px');
-  await evaluate('document.querySelector("#message").focus();true');
+  // A restored browser tab may already have the composer focused; force a true focus transition.
+  await evaluate('(()=>{document.activeElement?.blur();document.querySelector("#task-input").focus();document.querySelector("#message").focus();return true})()');
   await wait('document.activeElement?.id==="message"','mobile composer focus');
   const guideState=await evaluate('(()=>{const g=document.querySelector("#studio-niko-embedded-guide");return {active:document.activeElement?.id,typing:g.dataset.typing||null,open:g.open,visible:getComputedStyle(g).visibility,cssHas:CSS.supports("selector(body:has(textarea:focus))"),helpRule:document.querySelector("#studio-niko-guide-style")?.textContent.includes("data-typing")};})()');
   assert.equal(guideState.visible,'hidden','Closed help should not cover focused mobile composer: '+JSON.stringify(guideState));
