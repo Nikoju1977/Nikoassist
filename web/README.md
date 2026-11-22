@@ -34,6 +34,18 @@ La route \`api/assistant.js\` ne contacte que deux services publics : Wikipédia
 L'utilisateur choisit **Envoyer les tâches à Nikoassist** dans l'atelier du Hub. Seuls le nom du projet et jusqu'à 20 titres de tâches sont encodés dans le fragment \`#handoff=...\` (pas dans la requête HTTP) et transmis à l'onglet Nikoassist. Un second consentement explicite est demandé côté Nikoassist. Le fragment est supprimé de la barre d'adresse avant le dialogue. Les tâches importées sont sauvegardées **uniquement dans le navigateur Nikoassist** et les doublons sont évités. Aucun média, donnée de santé ni clé API ne doit être partagé par ce mécanisme.
 
 
+## Import et restauration de tâches (JSON, sans compte)
+
+Depuis « Mes tâches », utilisez **Exporter JSON** pour enregistrer un fichier `nikoassist-taches.json`. Sur un autre navigateur ou téléphone, ouvrez NikoAssist, sélectionnez **Importer JSON**, choisissez ce fichier dans votre gestionnaire de fichiers, puis confirmez.
+
+- Seul le format d'export `nikoassist-tasks-v1` est accepté (fichier de 256 Ko maximum, 200 tâches maximum).
+- **La liste existante n'est jamais remplacée** : les titres identiques sont ignorés, et les tâches importées reçoivent de nouveaux identifiants locaux. L'état terminé/non terminé est conservé.
+- Aucun serveur, compte, accès à la messagerie ni service d'IA n'est utilisé pour l'import. Les titres peuvent contenir des informations personnelles : la sauvegarde JSON est en clair et doit être conservée dans un espace privé.
+- Un export ne synchronise pas les appareils automatiquement : l'utilisateur transfère volontairement le fichier.
+- Le bouton d'import, les messages de confirmation et les retours d'erreur sont conçus pour PC, Android et iPhone, mais les tests sur téléphones physiques restent à effectuer.
+
+**Preuves techniques :** `node web/check.cjs` exerce la validation et la fusion des sauvegardes ; `.github/workflows/verify.yml` l'exécute à chaque commit sur `main`. Cela ne vaut pas validation sur appareil physique.
+
 ## Installation PWA (Android, iPhone, ordinateur)
 
 L'application dispose d'icônes PNG 192×192 et 512×512, d'un service worker pour les ressources statiques et d'un bouton « Installer la PWA ». Android Chrome : bouton Installer, ou menu ⋮ → Installer l'application / Ajouter à l'écran d'accueil. iPhone Safari : Partager → Sur l'écran d'accueil. Chrome/Edge desktop : icône d'installation dans la barre d'adresse ou menu du navigateur.
