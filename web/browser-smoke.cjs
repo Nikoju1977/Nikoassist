@@ -112,6 +112,7 @@ async function main(){
   await evaluate('(()=>{document.activeElement?.blur();document.querySelector("#task-input").focus();document.querySelector("#message").focus();return true})()');
   await wait('document.activeElement?.id==="message"','mobile composer focus');
   const guideState=await evaluate('(()=>{const g=document.querySelector("#studio-niko-embedded-guide");return {active:document.activeElement?.id,typing:g.dataset.typing||null,open:g.open,visible:getComputedStyle(g).visibility,cssHas:CSS.supports("selector(body:has(textarea:focus))"),helpRule:document.querySelector("#studio-niko-guide-style")?.textContent.includes("data-typing")};})()');
+  guideState.browserExceptions=browserErrors.slice(0,3);
   assert.equal(guideState.visible,'hidden','Closed help should not cover focused mobile composer: '+JSON.stringify(guideState));
   assert.deepEqual(browserErrors,[],'Uncaught JS errors');
   assert.deepEqual(httpPosts,[],'Task backup must not submit data to a server');
