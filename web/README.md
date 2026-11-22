@@ -51,3 +51,11 @@ Depuis « Mes tâches », utilisez **Exporter JSON** pour enregistrer un fichier
 L'application dispose d'icônes PNG 192×192 et 512×512, d'un service worker pour les ressources statiques et d'un bouton « Installer la PWA ». Android Chrome : bouton Installer, ou menu ⋮ → Installer l'application / Ajouter à l'écran d'accueil. iPhone Safari : Partager → Sur l'écran d'accueil. Chrome/Edge desktop : icône d'installation dans la barre d'adresse ou menu du navigateur.
 
 Une PWA n'est pas un APK signé. Hors ligne : interface et tâches locales accessibles si l'application a déjà été chargée ; recherche Wikipédia et météo nécessitent Internet.
+
+## Audit de la version publique (lecture seule)
+
+`node web/production-audit.cjs` effectue des requêtes HTTP publiques contre `https://nikoassist-pwa.vercel.app/`, sans identifiants et sans modification des tâches. Il vérifie le HTML d'accueil, le service worker `nikoassist-web-v7-network-first`, la logique d'aide mobile, le module de sauvegarde, le CSS et l'API de santé.
+
+La CI exécute également `node web/production-audit.test.cjs` avec de fausses réponses réseau, puis l'audit réel. Le résultat figure dans le **résumé GitHub Actions** et dans un fichier JSON joint à l'exécution (`nikoassist-production-http-audit`). Tant que l'ancienne version est en ligne, le rapport signale `outdated_or_incomplete` : ce constat **n'empêche pas les tests du code source de réussir**. L'option `NIKOASSIST_AUDIT_STRICT=1` permet à un opérateur d'en faire volontairement un test bloquant.
+
+Les statuts `http_verified`, `outdated_or_incomplete` et `partially_unreachable` portent exclusivement sur les réponses HTTP. Ils ne prouvent ni l'affichage iPhone/Android physique, ni l'exécution d'un moteur Python, ni les appels aux services IA externes. Vérifier indépendamment `target=production`, le SHA exact, puis la navigation et l'installation PWA.
