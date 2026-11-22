@@ -18,9 +18,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Validate web controls and local task backups
         run: node web/check.cjs
+      - name: Chromium end-to-end task backup, privacy and mobile usability
+        run: node web/browser-smoke.cjs
 
   unit-tests:
     name: Security and reliability
