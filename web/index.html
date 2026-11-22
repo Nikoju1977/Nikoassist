@@ -87,6 +87,8 @@
 /* Aide discrète : surface tactile de 44 px et disparition pendant la saisie. */
 #studio-niko-embedded-guide{width:44px!important;max-width:44px!important}
 #studio-niko-embedded-guide>summary{width:44px!important;height:44px!important;min-height:44px!important}
+/* Compatibilité : repli sans :has() ni @supports selector(). */
+#studio-niko-embedded-guide[data-typing="true"]:not([open]){visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 @supports selector(body:has(textarea:focus)){
  body:has(#message:focus) #studio-niko-embedded-guide:not([open]),
  body:has(#task-input:focus) #studio-niko-embedded-guide:not([open]){opacity:0!important;visibility:hidden!important}
@@ -119,6 +121,14 @@
   var guide=document.getElementById('studio-niko-embedded-guide');
   if(!guide)return;
   var trigger=guide.querySelector('summary');
+  document.addEventListener('focusin',function(e){
+    var id=e.target&&e.target.id;
+    if(id==='message'||id==='task-input')guide.dataset.typing='true';
+  });
+  document.addEventListener('focusout',function(e){
+    var id=e.target&&e.target.id;
+    if(id==='message'||id==='task-input')delete guide.dataset.typing;
+  });
   try{if(localStorage.getItem('studio-niko-guide-dock')==='right')guide.dataset.dock='right';}catch(e){}
   guide.querySelector('.sn-guide-close').addEventListener('click',function(){guide.open=false;trigger.focus();});
   guide.querySelector('.sn-guide-dock').addEventListener('click',function(){
