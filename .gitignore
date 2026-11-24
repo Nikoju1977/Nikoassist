@@ -20,3 +20,21 @@ local.properties
 **/vault.key
 **/vault.tmp
 **/app-settings.json
+
+# Studio Niko — prevent accidental publication of local secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+.vercel/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
