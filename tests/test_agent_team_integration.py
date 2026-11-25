@@ -152,17 +152,14 @@ def test_agents_are_limited_and_share_sentinel(monkeypatch):
     assert team.assess({"mode": "research", "goal": "Mission"}).risk == RiskLevel.MODERATE
 
     result = asyncio.run(team.execute(goal="Faire deux tâches", mode="act", max_agents=4))
-    assert "NikoAssist | 2 sous-agent(s)" in result.output
-    assert len(FakeMuseAgent.instances) == 2
-    operator, researcher = FakeMuseAgent.instances
+    assert "NikoAssist | 1 sous-agent(s)" in result.output
+    assert "1 sous-tâche(s) non exécutée(s)" in result.output
+    assert len(FakeMuseAgent.instances) == 1
+    operator = FakeMuseAgent.instances[0]
     assert operator.settings.agent.max_steps == 8
-    assert researcher.settings.agent.max_steps == 8
-    assert operator.sentinel is app.sentinel and researcher.sentinel is app.sentinel
+    assert operator.sentinel is app.sentinel
     assert {x.name for x in operator.tools} == {
         "terminate", "phone_act", "device__clipboard_read",
-    }
-    assert {x.name for x in researcher.tools} == {
-        "terminate", "web_search", "web_fetch",
     }
     assert "device__secret_dump" not in result.output
     assert not app.llm.responses
