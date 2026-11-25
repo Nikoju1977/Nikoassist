@@ -25,3 +25,24 @@ def test_untrusted_plan_cannot_select_phone_in_research():
     assert "phone_act" not in selected_tools(
         Role.RESEARCHER, {"phone_act", "web_search", "agent_team"}
     )
+
+
+def test_control_calls_are_not_business_evidence():
+    from nanomuse.nikoassist.core import business_tool_calls, report_status
+    names = business_tool_calls(["terminate", "agent_team"])
+    assert names == []
+    assert report_status(error=None, tool_errors=[], tool_calls=len(names)) == "unverified"
+    assert business_tool_calls(["web_search", "terminate"]) == ["web_search"]
+
+
+def test_mutating_delegation_stops_even_after_report():
+    from nanomuse.nikoassist.core import halt_delegation
+    assert halt_delegation("reported", "create", Role.CREATOR)
+    assert halt_delegation("reported", "act", Role.OPERATOR)
+    assert not halt_delegation("reported", "act", Role.RESEARCHER)
+
+
+def test_total_budget_bounded():
+    from nanomuse.nikoassist.core import ExecutionBudget
+    assert ExecutionBudget(seconds_per_mission=1).bounded().seconds_per_mission == 30
+    assert ExecutionBudget(seconds_per_mission=99999).bounded().seconds_per_mission == 3600
