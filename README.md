@@ -6,6 +6,14 @@
 
 [Installation](docs/INSTALLATION.md) · [Security](SECURITY.md) · [English overview](#english-overview) · [Portfolio](https://github.com/Nikoju1977)
 
+[![Web](https://img.shields.io/badge/web-Vanilla_JS-F7DF1E)](web/) [![Agents](https://img.shields.io/badge/agents-up_to_4-00897B)](nanomuse/nikoassist/core.py)
+
+**STUDIO NIKO DESIGN** · Build smart. Stay lightweight. Create without limits.
+
+> [Insérer ici un GIF de démonstration / Insert demo GIF here]
+
+**Pourquoi ce projet ?** Réutiliser le moteur nanoMuse plutôt que reconstruire une pile agentique complète : limiter les délégations, contrôler les outils, distinguer l'action réelle du résultat déclaré et faciliter l'intégration par un installateur reproductible.
+
 ## Vision & architecture
 
 Une surcouche agentique maintenable, privilégiant la réutilisation du runtime existant, les budgets bornés et les autorisations explicites. Contrairement à une PWA autonome sans dépendances, NikoAssist repose sur Python et nanoMuse ; les modèles distants nécessitent un fournisseur configuré.
@@ -28,6 +36,28 @@ flowchart TD
     Review --> Client
 ```
 
+### Deux surfaces d'exécution : runtime et PWA
+
+| Surface | Fonctions | Limites |
+| --- | --- | --- |
+| Runtime Python (`main`, extension) | `agent_team`, délégation MuseAgent, budgets, Sentinel | Nécessite nanoMuse et un modèle configuré |
+| `source-nikoassist` | Sources mobiles intégrées (voir branche liée ci-dessous) | Build et signature à vérifier séparément |
+| [`web/`](web/README.md) | Calculatrice sans `eval`, tâches locales, sauvegarde JSON, dictée si compatible, PWA, Wikipédia et météo via proxy | Pas de connexion de cette PWA à `agent_team` ; requêtes externes pour Wikipédia/météo |
+
+```mermaid
+flowchart LR
+  PWA[Vanilla JS PWA] --> Tasks[Local tasks and JSON]
+  PWA --> Proxy[Optional HTTP queries]
+  Proxy --> Sources[Wikipedia / Open-Meteo]
+  Native[nanoMuse client] --> Runtime[Python agent_team]
+  Runtime --> Policy[Budgets and Sentinel]
+  Policy --> Provider[Configured model and tools]
+```
+
+**Quickstart Web :** servir le dossier `web/` par `python -m http.server 8000 --directory web` puis ouvrir http://localhost:8000/. Les tâches et calculs sont locaux ; les routes Vercel nécessitent leur environnement serveur. [URL de déploiement documentée](https://nikoassist-pwa.vercel.app/) (disponibilité non vérifiée lors de cette mise à jour). Les sauvegardes JSON et le stockage local des tâches sont en clair. Les clés du runtime Python relèvent du coffre nanoMuse, pas de la PWA.
+
+[Documentation Web](web/README.md) · [Audit de production](web/production-audit.cjs) · [Workflow de vérification](.github/workflows/verify.yml). La présence de ces fichiers ne prouve pas la réussite du dernier run.
+
 > **Projet signature · 03/06 · AGENTS IA** — [Étude de projet : problème, choix techniques et limites](https://github.com/Nikoju1977/Nikoju1977/blob/main/SHOWCASE.md) · [Portfolio Studio Niko Design](https://github.com/Nikoju1977).
 
 
@@ -38,7 +68,7 @@ flowchart TD
 - **[source-nikoassist](https://github.com/Nikoju1977/Nikoassist/tree/source-nikoassist)** : **code source complet** nanoMuse, avec la marque NikoAssist sur les projets iOS/Android et l'outil multi-agents raccordé au moteur Python.
 - **[main](https://github.com/Nikoju1977/Nikoassist)** : extension maintenable, installateur, tests et workflows d'intégration.
 
-## Fonctions implémentées
+## Fonctionnalités clés implémentées
 
 - Un orchestrateur **`agent_team`** avec jusqu'à **4 sous-agents spécialisés** : recherche, analyse, création, exécution.
 - **Planification contrôlée** : filtrage des tâches, des rôles et des outils, sans escalade de privilèges depuis un résultat généré par IA.
@@ -119,11 +149,26 @@ Les chaînes de compilation natives sont publiées dans `main` :
 [Instructions de compilation et limites de distribution](docs/MOBILE_BUILDS.md). Aucun secret Mistral, certificat iOS ou keystore de distribution n'est inclus dans les builds.
 
 
+## Roadmap & contribution
+
+Propositions à valider (non terminées) :
+
+- [ ] Vérifier l'intégration nanoMuse et les limites d'autorisation sur la révision courante.
+- [ ] Reproduire les tests de la PWA, de la restauration JSON et de l'audit HTTP.
+- [ ] Vérifier les builds Android/iOS et les tests sur appareils physiques.
+- [ ] Concevoir une passerelle PWA vers runtime Python avec authentification et contrôle Sentinel explicites.
+
+**Première contribution / `good first issue` (label proposé, existence non vérifiée) :** Ajouter un test de régression de la politique de délégation, ou documenter un défaut reproductible de restauration JSON.
+
+[Issues](https://github.com/Nikoju1977/Nikoassist/issues) · [Historique des commits](https://github.com/Nikoju1977/Nikoassist/commits/main/)
+
 ## English overview
 
 NikoAssist extends nanoMuse with an `agent_team` tool, bounded planning and delegation, role-based tool filtering and Sentinel-controlled actions. The policy permits up to four sub-agents, subject to execution budgets. Mistral configuration uses nanoMuse's native encrypted vault. The optional OpenMontage connector prepares briefs and tracks projects; it does not itself render video. Native mobile builds and device-level reliability require separate verification. The agents execute in the connected Python runtime, not as independent native agents on each phone.
 
 Installation: follow [INSTALLATION.md](docs/INSTALLATION.md) using the pinned upstream revision. For a reproducible offline test, run the commands in that guide. The CI badge reports workflow state, not device certification. No tests were rerun for this documentation update.
+
+The separate Vanilla JS PWA includes local tasks, backup/restore and arithmetic; Wikipedia and weather use server routes. It is not connected to the Python agent_team runtime. Contributions to GPL-covered code must preserve GPL rights, corresponding source and upstream attribution. Suggested first issue: a focused policy or task-restore regression.
 
 ## Contribuer / Contributing
 
