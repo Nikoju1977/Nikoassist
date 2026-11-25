@@ -34,6 +34,7 @@ class ExecutionBudget:
     max_response_chars: int = 12000
     seconds_per_agent: int = 600
     seconds_per_model_call: int = 90
+    seconds_per_mission: int = 900
 
     def bounded(self) -> "ExecutionBudget":
         return ExecutionBudget(
@@ -45,6 +46,7 @@ class ExecutionBudget:
             max_response_chars=clamp_int(self.max_response_chars, 12000, 500, 20000),
             seconds_per_agent=clamp_int(self.seconds_per_agent, 600, 30, 1800),
             seconds_per_model_call=clamp_int(self.seconds_per_model_call, 90, 10, 240),
+            seconds_per_mission=clamp_int(self.seconds_per_mission, 900, 30, 3600),
         )
 
 
@@ -61,7 +63,7 @@ ROLE_TOOLS: dict[Role, frozenset[str]] = {
 # Never approve new, unreviewed device__* capabilities automatically.
 # Side-effecting methods are excluded from this delegation allowlist.
 ALLOWED_DEVICE_TOOLS: frozenset[str] = frozenset({
-    "device__clipboard_read", "device__notify", "device__calendars",
+    "device__clipboard_read", "device__calendars",
     "device__calendar_list", "device__contacts_search", "device__location",
     "device__photo_pick", "device__notifications_read",
 })
@@ -160,3 +162,19 @@ def should_halt(status: str, mode: str) -> bool:
     return status in {"failed", "partial", "unknown"} or (
         mode == "act" and status == "unverified"
     )
+
+def mutating_role(role: Role) -> bool:
+    """A creator/operator may have effects even if its output is missing."""
+    return role in (Role.CREATOR, Role.OPERATOR)
+
+
+def business_tool_calls(names: list[str]) -> list[str]:
+    """Termination is control flow, not evidence of external work."""
+    return [name for name in names if name not in ("terminate", "agent_team")]
+
+
+def halt_delegation(status: str, mode: str, role: Role) -> bool:
+    """No dependent delegation after a potentially mutating agent without
+    independent verification. The current gateway has no such verifier.
+    """
+    return should_halt(status, mode) or mutating_role(role)
