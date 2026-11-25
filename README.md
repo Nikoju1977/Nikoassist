@@ -1,5 +1,33 @@
 # NikoAssist — Studio Niko Design
 
+**Bounded multi-agent orchestration for nanoMuse · Python runtime · Mobile integration**
+
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE) [![Runtime](https://img.shields.io/badge/runtime-Python-blue)](nanomuse/nikoassist/) [![CI workflow](https://github.com/Nikoju1977/Nikoassist/actions/workflows/verify.yml/badge.svg)](https://github.com/Nikoju1977/Nikoassist/actions/workflows/verify.yml)
+
+[Installation](docs/INSTALLATION.md) · [Security](SECURITY.md) · [English overview](#english-overview) · [Portfolio](https://github.com/Nikoju1977)
+
+## Vision & architecture
+
+Une surcouche agentique maintenable, privilégiant la réutilisation du runtime existant, les budgets bornés et les autorisations explicites. Contrairement à une PWA autonome sans dépendances, NikoAssist repose sur Python et nanoMuse ; les modèles distants nécessitent un fournisseur configuré.
+
+| Module | Rôle |
+| --- | --- |
+| [core.py](nanomuse/nikoassist/core.py) | Politique déterministe, rôles, budgets et liste blanche |
+| [tool.py](nanomuse/nikoassist/tool.py) | Planification, délégation MuseAgent, synthèse |
+| [install_nikoassist.py](scripts/install_nikoassist.py) | Installation atomique et simulation dry-run |
+| [tests/](tests/) | Régressions hors ligne |
+| [Mistral](docs/MISTRAL_VAULT.md) | Configuration du fournisseur et coffre natif |
+
+```mermaid
+flowchart TD
+    Client[Client nanoMuse] --> Team[agent_team]
+    Team --> Plan[Bounded planning and policy]
+    Plan --> Agent[MuseAgent delegation]
+    Agent --> Sentinel[Sentinel guarded tools]
+    Agent --> Review[Review and status]
+    Review --> Client
+```
+
 > **Projet signature · 03/06 · AGENTS IA** — [Étude de projet : problème, choix techniques et limites](https://github.com/Nikoju1977/Nikoju1977/blob/main/SHOWCASE.md) · [Portfolio Studio Niko Design](https://github.com/Nikoju1977).
 
 
@@ -89,3 +117,16 @@ Les chaînes de compilation natives sont publiées dans `main` :
 - [iOS — compiler une application d'appareil non signée](.github/workflows/build-ios.yml) : compile LAME, FFmpeg et iSH sur macOS puis effectue un build Xcode ; le `.app` produit **n'est pas directement installable sur iPhone** sans signature Apple.
 
 [Instructions de compilation et limites de distribution](docs/MOBILE_BUILDS.md). Aucun secret Mistral, certificat iOS ou keystore de distribution n'est inclus dans les builds.
+
+
+## English overview
+
+NikoAssist extends nanoMuse with an `agent_team` tool, bounded planning and delegation, role-based tool filtering and Sentinel-controlled actions. The policy permits up to four sub-agents, subject to execution budgets. Mistral configuration uses nanoMuse's native encrypted vault. The optional OpenMontage connector prepares briefs and tracks projects; it does not itself render video. Native mobile builds and device-level reliability require separate verification. The agents execute in the connected Python runtime, not as independent native agents on each phone.
+
+Installation: follow [INSTALLATION.md](docs/INSTALLATION.md) using the pinned upstream revision. For a reproducible offline test, run the commands in that guide. The CI badge reports workflow state, not device certification. No tests were rerun for this documentation update.
+
+## Contribuer / Contributing
+
+Open an issue describing a reproducible problem, environment and expected behavior. Keep changes focused, add regression tests, and preserve the original license and attribution. Never attach credentials or private logs. See [SECURITY.md](SECURITY.md) for security matters and [LICENSE_NOTICE.md](LICENSE_NOTICE.md) for upstream credits.
+
+**Studio Niko Design** · Evidence-driven agent orchestration.
