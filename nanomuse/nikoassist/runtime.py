@@ -2,10 +2,11 @@
 from __future__ import annotations
 import asyncio
 import inspect
+import math
 import time
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
-from .core import Role, Subtask, parse_plan, selected_tools, bounded_excerpt
+from .core import Role, Subtask, parse_plan, selected_tools, bounded_excerpt, mutating_role
 
 class ApprovalRequired(Exception):
     """An irreversible operation needs explicit user approval."""
@@ -40,15 +41,17 @@ class AgentRuntime:
             raise TypeError("execute must be callable")
         if not 0 < timeout_seconds <= 600:
             raise ValueError("invalid timeout")
-        if not 0 <= max_retries <= 3:
+        if type(max_retries) is not int or not 0 <= max_retries <= 3:
             raise ValueError("invalid retry count")
-        if not 1 <= max_steps <= 4:
+        if type(max_steps) is not int or not 1 <= max_steps <= 4:
             raise ValueError("invalid step count")
         self.execute = execute
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.max_steps = max_steps
-        self.backoff_seconds = max(0, min(backoff_seconds, 5))
+        if not math.isfinite(backoff_seconds) or backoff_seconds < 0:
+            raise ValueError("invalid backoff")
+        self.backoff_seconds = min(backoff_seconds, 5)
         self.audit = audit
 
     def _audit(self, event: dict) -> None:
@@ -60,10 +63,12 @@ class AgentRuntime:
 
     async def run(self, goal: str, plan_json: str, available_tools: set[str],
                   *, mode: str = "research", approved: bool = False) -> RunResult:
-        if not goal or not goal.strip():
+        if not isinstance(goal, str) or not goal.strip():
             raise ValueError("goal is required")
-        if mode == "act" and not approved:
-            raise ApprovalRequired("User must approve action mode")
+        if mode not in ("research", "create", "act"):
+            raise ValueError("invalid mode")
+        if mode in ("create", "act") and approved is not True:
+            raise ApprovalRequired("User must approve creation or action mode")
         plan = parse_plan(plan_json, goal, mode=mode, max_agents=self.max_steps)
         result = RunResult(goal=goal)
         for step in plan[:self.max_steps]:
@@ -77,7 +82,8 @@ class AgentRuntime:
                     response = self.execute(step.role, step.objective, tools)
                     if not inspect.isawaitable(response):
                         raise TypeError("execute must return an awaitable")
-                    output = str(await asyncio.wait_for(response, timeout=self.timeout_seconds))
+                    value = await asyncio.wait_for(response, timeout=self.timeout_seconds)
+                    output = value if isinstance(value, str) else ""
                     ok = bool(output.strip())
                     if not ok:
                         output = "Empty agent response"
@@ -87,7 +93,7 @@ class AgentRuntime:
                 except (TimeoutError, OSError, ConnectionError) as exc:
                     output = f"{type(exc).__name__}: {exc}"
                     # Never replay operations with side effects automatically.
-                    if step.role == Role.OPERATOR or retry >= self.max_retries:
+                    if mutating_role(step.role) or retry >= self.max_retries:
                         break
                     await asyncio.sleep(self.backoff_seconds * (2 ** retry))
                 except Exception as exc:
@@ -99,10 +105,10 @@ class AgentRuntime:
             result.steps.append(record)
             self._audit({"role": record.role, "ok": ok,
                          "attempts": attempts, "duration_ms": record.duration_ms})
-            if not ok:
+            if not ok or mutating_role(step.role):
                 break
         result.verified = False  # Explicit verifier required; never infer from a fluent answer.
         result.summary = "\n".join(
-            f"[{s.role}] {'OK' if s.ok else 'FAILED'}: {s.output}" for s in result.steps
+            f"[{s.role}] {'REPORTED / UNVERIFIED' if s.ok else 'FAILED'}: {s.output}" for s in result.steps
         )
         return result
