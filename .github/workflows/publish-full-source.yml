@@ -12,13 +12,21 @@ on:
 permissions:
   contents: write
 
+# Only one writer to source-nikoassist at a time. Pending jobs may be
+# superseded; each running job checks out the current main revision.
+concurrency:
+  group: nikoassist-full-source-publish
+  cancel-in-progress: false
+
 jobs:
   materialize:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Checkout NikoAssist overlay
+      - name: Checkout current NikoAssist overlay
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Clone pinned GPL nanoMuse
         shell: bash
