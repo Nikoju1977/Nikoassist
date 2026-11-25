@@ -16,7 +16,7 @@ from nanomuse.schema import Message, RiskLevel, Role as MessageRole, ToolResult
 from nanomuse.tools.base import BaseTool, CallAssessment, ToolCollection, int_arg
 from nanomuse.tools.terminate import Terminate
 from nanomuse.nikoassist.core import (
-    ExecutionBudget, Role, bounded_excerpt, parse_plan, report_status, selected_tools, should_halt,
+    ExecutionBudget, Role, bounded_excerpt, parse_plan, report_status, selected_tools, halt_delegation, business_tool_calls,
 )
 
 _ROLE_INSTRUCTIONS = {
@@ -132,6 +132,7 @@ class NikoAssistTeamTool(BaseTool):
             for msg in agent.messages if msg.role == MessageRole.ASSISTANT
             for call in (msg.tool_calls or [])
         ]
+        called = business_tool_calls(called)
         errors = [
             bounded_excerpt(msg.content or "", 250)
             for msg in agent.messages if msg.role == MessageRole.TOOL
@@ -161,7 +162,11 @@ class NikoAssistTeamTool(BaseTool):
         self._in_flight = True
         try:
             async with self._run_lock:
-                return await self._execute_once(goal, mode, max_agents)
+                try:
+                    async with asyncio.timeout(self.budget.bounded().seconds_per_mission):
+                        return await self._execute_once(goal, mode, max_agents)
+                except TimeoutError:
+                    return ToolResult.fail("Budget global dépassé. Effets éventuels indéterminés ; vérifier avant toute relance.")
         finally:
             self._in_flight = False
 
@@ -195,7 +200,7 @@ class NikoAssistTeamTool(BaseTool):
                 "role": task.role.value, "objective": task.objective,
                 "result": result, "audit": audit, "status": status,
             })
-            if should_halt(status, mode):
+            if halt_delegation(status, mode, task.role):
                 # Fail closed: never chain further operations on an unknown outcome.
                 break
 
@@ -231,6 +236,8 @@ class NikoAssistTeamTool(BaseTool):
             f"NikoAssist | {len(records)} sous-agent(s) | {mode}. "
             "Actions sensibles via Sentinel; sans preuve, statut non vérifié."
         )
+        if len(records) < len(tasks):
+            summary += f"\n{len(tasks) - len(records)} sous-tâche(s) non exécutée(s) : chaîne interrompue par prudence."
         if planning_error:
             summary += "\n" + planning_error
         statuses = ", ".join(f"{r['role']}={r['status']}" for r in records)
