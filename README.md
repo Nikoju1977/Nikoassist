@@ -14,6 +14,19 @@
 
 **Pourquoi ce projet ?** Réutiliser le moteur nanoMuse plutôt que reconstruire une pile agentique complète : limiter les délégations, contrôler les outils, distinguer l'action réelle du résultat déclaré et faciliter l'intégration par un installateur reproductible.
 
+## Fiabilisation du runtime — 25 novembre 2026
+
+[Politique](https://github.com/Nikoju1977/Nikoassist/commit/7d8ce3b6adef907d3207ce276b046e2dfdabbf2d) · [Orchestrateur nanoMuse](https://github.com/Nikoju1977/Nikoassist/commit/8602aed25ecb176564bcabfca63be838d73a5b30) · [Runtime](https://github.com/Nikoju1977/Nikoassist/commit/08062facc9c6cf41d75299be8281fb1243f15700).
+
+- Budget global de mission de 900 secondes par défaut (borné de 30 à 3 600 secondes), en plus des budgets existants. Un délai dépassé ne prouve pas l'annulation d'une action distante.
+- Les appels de contrôle `terminate` et `agent_team` ne comptent plus comme preuve d'appel métier.
+- Aucune délégation suivante après un rôle créateur/opérateur sans vérificateur indépendant ; résultat déclaré non vérifié, tâches restantes indiquées. La recherche et l'analyse restent délégables.
+- Runtime auxiliaire : approbation explicite en mode create/act, absence de reprise automatique des rôles mutateurs, rejet des réponses non textuelles ou vides, validation des modes et limites. Ce runtime n'est pas une passerelle d'autorisation autonome : Sentinel reste indispensable.
+- Retrait de `device__notify` de la liste des outils délégués autorisés par défaut.
+- Tests de régression mis à jour dans trois fichiers. Les six empreintes source ont été relues ; [CI de la révision des tests](https://github.com/Nikoju1977/Nikoassist/actions/runs/45703939142) observée en attente. [Publication de la branche source](https://github.com/Nikoju1977/Nikoassist/actions/runs/45703897282) en échec à l'étape de mise à jour fast-forward ; cause exacte non établie. La syntaxe de l'overlay avait réussi dans ce run intermédiaire.
+
+Aucun appel fournisseur réel, test physique ni nouvelle installation mobile revendiqué. La PWA reste distincte du runtime ; aucun raccordement réseau ni mémoire persistante supplémentaire ajouté. GPL et attributions d'origine inchangées.
+
 ## Vision & architecture
 
 Une surcouche agentique maintenable, privilégiant la réutilisation du runtime existant, les budgets bornés et les autorisations explicites. Contrairement à une PWA autonome sans dépendances, NikoAssist repose sur Python et nanoMuse ; les modèles distants nécessitent un fournisseur configuré.
