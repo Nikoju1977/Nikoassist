@@ -45,5 +45,37 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(count, 1)
         self.assertFalse(result.steps[0].ok)
 
+
+    async def test_create_requires_explicit_approval(self):
+        async def execute(*args): return "created"
+        with self.assertRaises(ApprovalRequired):
+            await AgentRuntime(execute).run("create file", "", {"files"}, mode="create")
+
+    async def test_create_timeout_never_replayed(self):
+        calls = []
+        async def execute(*args):
+            calls.append(args)
+            raise TimeoutError("unknown outcome")
+        plan = json.dumps({"tasks":[{"role":"creator","objective":"write file"}]})
+        result = await AgentRuntime(execute, max_retries=3).run(
+            "create", plan, {"files"}, mode="create", approved=True)
+        self.assertEqual(len(calls), 1)
+        self.assertFalse(result.steps[0].ok)
+
+    async def test_none_not_success(self):
+        async def execute(*args): return None
+        result = await AgentRuntime(execute).run("research", "", {"web_search"})
+        self.assertFalse(result.steps[0].ok)
+
+    async def test_mutating_step_halts_even_if_reported(self):
+        async def execute(*args): return "created"
+        plan = json.dumps({"tasks":[{"role":"creator","objective":"write file"},
+                                   {"role":"analyst","objective":"continue"}]})
+        result = await AgentRuntime(execute).run(
+            "create", plan, {"files"}, mode="create", approved=True)
+        self.assertEqual(len(result.steps), 1)
+        self.assertFalse(result.verified)
+        self.assertIn("UNVERIFIED", result.summary)
+
 if __name__ == "__main__":
     unittest.main()
